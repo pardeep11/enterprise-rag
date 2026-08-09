@@ -136,3 +136,18 @@ pass
 pass.pub
 ```
 
+.venv/
+__pycache__/
+*.pyc
+
+.env
+
+# PDFs / private documents
+*.pdf
+
+# Generated vector database
+vectorstore/
+
+# Secrets / keys
+*.pem
+*.key

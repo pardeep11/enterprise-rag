@@ -47,8 +47,8 @@ def chunk_pdfs():
 @app.get("/build-index")
 def create_index():
 
-    index = build_index()
+    build_index()
 
     return {
-        "message": "Embeddings generated and vector index created successfully",
+        "message": "FAISS index created successfully",
     }
