@@ -10,13 +10,17 @@ FILES = [
 
 
 def load_pdf_documents():
+     """
+     Load and return documents from PDF files.
+     
+     """
 
     documents = []
 
     for file_path in FILES:
 
         if not os.path.exists(file_path):
-            print(f"❌ File not found: {file_path}")
+            print(f"File not found: {file_path}")
             continue
 
         try:
@@ -27,12 +31,12 @@ def load_pdf_documents():
 
             documents.extend(docs)
 
-            print(f"✅ Loaded: {file_path}")
+            print(f"Loaded: {file_path}")
             print(f"   Pages: {len(docs)}")
 
         except Exception as e:
 
-            print(f"❌ Failed to load: {file_path}")
+            print(f"Failed to load: {file_path}")
             print(f"   Error: {e}")
 
     return documents
