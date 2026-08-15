@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from app.loaders.pdf_loader import load_pdf_documents
 from app.chunking.chunker import chunk_documents
 from app.vectorstore.index import build_index
-from app.rag.rag_pipeline import ask_question
+from app.retrieval.search import semantic_search
 
 
 app = FastAPI(
@@ -13,16 +13,42 @@ app = FastAPI(
 )
 
 
-class QuestionRequest(BaseModel):
+# ----------------------------------
+# Request Models
+# ----------------------------------
+
+class SearchRequest(BaseModel):
+
     question: str
 
 
+# ----------------------------------
+# Root endpoint
+# ----------------------------------
+
 @app.get("/")
 def root():
+
     return {
         "message": "Enterprise RAG API is running"
     }
 
+
+# ----------------------------------
+# Health check
+# ----------------------------------
+
+@app.get("/health")
+def health_check():
+
+    return {
+        "status": "healthy"
+    }
+
+
+# ----------------------------------
+# Load PDFs
+# ----------------------------------
 
 @app.get("/load-pdfs")
 def load_pdfs():
@@ -34,6 +60,10 @@ def load_pdfs():
         "message": "PDFs loaded successfully",
     }
 
+
+# ----------------------------------
+# Chunk PDFs
+# ----------------------------------
 
 @app.get("/chunk-pdfs")
 def chunk_pdfs():
@@ -49,25 +79,32 @@ def chunk_pdfs():
     }
 
 
+# ----------------------------------
+# Build FAISS index
+# ----------------------------------
+
 @app.get("/build-index")
 def create_index():
 
     build_index()
 
     return {
-        "message": "FAISS index created successfully",
+        "message": "Embeddings generated and vector index created successfully",
     }
 
 
-@app.post("/ask")
-def ask(request: QuestionRequest):
+# ----------------------------------
+# Semantic Search
+# ----------------------------------
 
-    result = ask_question(
+@app.post("/search")
+def search(request: SearchRequest):
+
+    results = semantic_search(
         request.question
     )
 
     return {
-        "question": result["question"],
-        "answer": result["answer"],
-        "sources": result["sources"],
+        "question": request.question,
+        "results": results,
     }
