@@ -10,10 +10,9 @@ FILES = [
 
 
 def load_pdf_documents():
-     """
-     Load and return documents from PDF files.
-     
-     """
+    """
+    Load and return documents from PDF files.
+    """
 
     documents = []
 

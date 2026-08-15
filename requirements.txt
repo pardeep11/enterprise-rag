@@ -21,6 +21,13 @@ llama-index-llms-ollama==0.7.1
 llama-index-embeddings-ollama==0.7.0
 
 # -----------------------------
+# LangChain
+# -----------------------------
+
+langchain-core
+langchain-ollama
+
+# -----------------------------
 # Vector Search
 # -----------------------------
 

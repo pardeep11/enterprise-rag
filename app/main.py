@@ -1,8 +1,10 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
 
 from app.loaders.pdf_loader import load_pdf_documents
 from app.chunking.chunker import chunk_documents
 from app.vectorstore.index import build_index
+from app.rag.rag_pipeline import ask_question
 
 
 app = FastAPI(
@@ -11,9 +13,12 @@ app = FastAPI(
 )
 
 
+class QuestionRequest(BaseModel):
+    question: str
+
+
 @app.get("/")
 def root():
-
     return {
         "message": "Enterprise RAG API is running"
     }
@@ -51,4 +56,18 @@ def create_index():
 
     return {
         "message": "FAISS index created successfully",
+    }
+
+
+@app.post("/ask")
+def ask(request: QuestionRequest):
+
+    result = ask_question(
+        request.question
+    )
+
+    return {
+        "question": result["question"],
+        "answer": result["answer"],
+        "sources": result["sources"],
     }
