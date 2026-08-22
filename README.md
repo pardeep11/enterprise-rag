@@ -18,7 +18,7 @@ The project loads PDF documents, splits them into chunks, generates embeddings, 
 | 6 | Semantic Search | ✅ Complete |
 | 7 | Ollama LLM Integration | ✅ Complete |
 | 8 | Complete RAG Pipeline | ✅ Complete |
-| 9 | FastAPI APIs | 🔜 Next |
+| 9 | FastAPI APIs | ✅ Complete |
 | 10 | Metadata Filtering | 🔜 Next |
 
 ---

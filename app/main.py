@@ -5,6 +5,7 @@ from app.loaders.pdf_loader import load_pdf_documents
 from app.chunking.chunker import chunk_documents
 from app.vectorstore.index import build_index
 from app.retrieval.search import semantic_search
+from app.rag.rag_pipeline import ask_question
 
 
 app = FastAPI(
@@ -19,6 +20,9 @@ app = FastAPI(
 
 class SearchRequest(BaseModel):
 
+    question: str
+
+class ChatRequest(BaseModel):
     question: str
 
 
@@ -80,20 +84,6 @@ def chunk_pdfs():
 
 
 # ----------------------------------
-# Build FAISS index
-# ----------------------------------
-
-@app.get("/build-index")
-def create_index():
-
-    build_index()
-
-    return {
-        "message": "Embeddings generated and vector index created successfully",
-    }
-
-
-# ----------------------------------
 # Semantic Search
 # ----------------------------------
 
@@ -107,4 +97,26 @@ def search(request: SearchRequest):
     return {
         "question": request.question,
         "results": results,
+    }
+
+@app.post("/chat")
+def chat(request: ChatRequest):
+
+    result = ask_question(
+        request.question
+    )
+
+    return {
+        "question": request.question,
+        "answer": result["answer"],
+        "sources": result["sources"],
+    }
+
+@app.post("/ingest")
+def ingest_documents():
+
+    build_index()
+
+    return {
+        "message": "Documents ingested and FAISS index created successfully"
     }
