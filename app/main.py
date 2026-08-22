@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.loaders.pdf_loader import load_pdf_documents
 from app.chunking.chunker import chunk_documents
@@ -22,7 +22,21 @@ class SearchRequest(BaseModel):
 
     question: str
 
+    top_k: int = Field(
+        default=5,
+        ge=1,
+        le=20
+    )
+
+    file_name: str | None = None
+
+    department: str | None = None
+
+    page_label: str | None = None
+
+
 class ChatRequest(BaseModel):
+
     question: str
 
 
@@ -91,13 +105,29 @@ def chunk_pdfs():
 def search(request: SearchRequest):
 
     results = semantic_search(
-        request.question
+        question=request.question,
+        top_k=request.top_k,
+        file_name=request.file_name,
+        department=request.department,
+        page_label=request.page_label,
     )
 
     return {
         "question": request.question,
+
+        "filters": {
+            "file_name": request.file_name,
+            "department": request.department,
+            "page_label": request.page_label,
+        },
+
         "results": results,
     }
+
+
+# ----------------------------------
+# Chat / RAG
+# ----------------------------------
 
 @app.post("/chat")
 def chat(request: ChatRequest):
@@ -111,6 +141,11 @@ def chat(request: ChatRequest):
         "answer": result["answer"],
         "sources": result["sources"],
     }
+
+
+# ----------------------------------
+# Ingest Documents
+# ----------------------------------
 
 @app.post("/ingest")
 def ingest_documents():

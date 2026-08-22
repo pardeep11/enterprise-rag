@@ -43,9 +43,69 @@ def load_vector_store():
     return faiss_index, metadata
 
 
+# ==================================
+# Metadata Filter
+# ==================================
+
+def matches_filter(
+    metadata,
+    file_name=None,
+    department=None,
+    page_label=None,
+):
+
+    # ----------------------------------
+    # Filter by file name
+    # ----------------------------------
+
+    if file_name:
+
+        if metadata.get("file_name") != file_name:
+            return False
+
+    # ----------------------------------
+    # Filter by department
+    # ----------------------------------
+
+    if department:
+
+        file_path = metadata.get(
+            "file_path",
+            ""
+        ).lower()
+
+        department_path = (
+            f"/{department.lower()}/"
+        )
+
+        if department_path not in file_path:
+            return False
+
+    # ----------------------------------
+    # Filter by page
+    # ----------------------------------
+
+    if page_label:
+
+        if str(
+            metadata.get("page_label")
+        ) != str(page_label):
+
+            return False
+
+    return True
+
+
+# ==================================
+# Semantic Search
+# ==================================
+
 def semantic_search(
     question: str,
-    top_k: int = 5
+    top_k: int = 5,
+    file_name: str | None = None,
+    department: str | None = None,
+    page_label: str | None = None,
 ):
 
     # ----------------------------------
@@ -72,35 +132,65 @@ def semantic_search(
     )
 
     # ----------------------------------
-    # 4. FAISS similarity search
+    # 4. Search more candidates
     # ----------------------------------
+
+    candidate_k = min(
+        top_k * 4,
+        faiss_index.ntotal
+    )
 
     distances, indices = faiss_index.search(
         query_vector,
-        top_k
+        candidate_k
     )
 
     # ----------------------------------
-    # 5. Get matching chunks
+    # 5. Metadata filtering
     # ----------------------------------
 
     results = []
 
-    for rank, (distance, index_id) in enumerate(
-        zip(distances[0], indices[0]),
-        start=1
+    for distance, index_id in zip(
+        distances[0],
+        indices[0]
     ):
 
         if index_id == -1:
             continue
 
+        item_metadata = metadata[index_id]["metadata"]
+
+        # ----------------------------------
+        # Apply metadata filter
+        # ----------------------------------
+
+        if not matches_filter(
+            item_metadata,
+            file_name=file_name,
+            department=department,
+            page_label=page_label,
+        ):
+            continue
+
+        # ----------------------------------
+        # Add result
+        # ----------------------------------
+
         result = {
-            "rank": rank,
+            "rank": len(results) + 1,
             "score": float(distance),
             "text": metadata[index_id]["text"],
-            "metadata": metadata[index_id]["metadata"],
+            "metadata": item_metadata,
         }
 
         results.append(result)
+
+        # ----------------------------------
+        # Stop after top_k results
+        # ----------------------------------
+
+        if len(results) >= top_k:
+            break
 
     return results
