@@ -1,12 +1,14 @@
 # Enterprise RAG
 
-An end-to-end Retrieval-Augmented Generation (RAG) application built with Python, LlamaIndex, FAISS CPU, Ollama, and FastAPI.
+An end-to-end Enterprise Retrieval-Augmented Generation (RAG) system built with **Python, LlamaIndex, FAISS CPU, Ollama, and FastAPI**.
 
-The project loads PDF documents, splits them into chunks, generates embeddings, stores vectors in FAISS, performs semantic search, applies metadata filtering, and uses an Ollama LLM to generate answers from retrieved context.
+The system processes enterprise PDF documents, creates semantic chunks, generates embeddings using Ollama, stores vectors in FAISS, performs semantic retrieval, applies metadata filtering, and uses a local Ollama LLM to generate grounded answers.
+
+The project is designed as a modular foundation for building production-oriented Enterprise RAG systems.
 
 ---
 
-## 🚀 Project Status
+# 🚀 Project Status
 
 | Milestone | Description            | Status     |
 | --------- | ---------------------- | ---------- |
@@ -21,84 +23,126 @@ The project loads PDF documents, splits them into chunks, generates embeddings, 
 | 9         | FastAPI APIs           | ✅ Complete |
 | 10        | Metadata Filtering     | ✅ Complete |
 
-**Current Progress: 10/10 milestones completed 🎉**
+### Current Progress
+
+**10/10 milestones completed 🎉**
 
 ---
 
 # 🏗️ Architecture
 
 ```text
-PDF Documents
-      ↓
-LlamaIndex PDF Loader
-      ↓
-Document Chunking
-      ↓
-Ollama Embeddings
-      ↓
-FAISS Vector Index
-      ↓
-Semantic Search
-      ↓
-Candidate Retrieval
-      ↓
-Metadata Filtering
-      ↓
-Top Relevant Chunks
-      ↓
-Prompt Construction
-      ↓
-Ollama LLM
-      ↓
-Generated Answer
-      ↓
-FastAPI
+                    Enterprise Documents
+                           │
+                           ▼
+                    PDF Document Loader
+                       (LlamaIndex)
+                           │
+                           ▼
+                    Document Chunking
+                    (SentenceSplitter)
+                           │
+                           ▼
+                    Embedding Generation
+                     (Ollama Embeddings)
+                           │
+                           ▼
+                     FAISS Vector Store
+                           │
+                           ▼
+                    Semantic Retrieval
+                           │
+                           ▼
+                   Metadata Filtering
+                           │
+                           ▼
+                    Relevant Top-K Chunks
+                           │
+                           ▼
+                    Prompt Construction
+                           │
+                           ▼
+                       Ollama LLM
+                           │
+                           ▼
+                    Grounded Answer
+                           │
+                           ▼
+                     FastAPI REST API
 ```
 
 ---
 
 # 🔄 RAG Pipeline
 
-The complete RAG workflow:
+The complete retrieval and generation workflow:
 
 ```text
 User Question
-      ↓
-Generate Question Embedding
-      ↓
-FAISS Vector Search
-      ↓
-Retrieve Candidate Chunks
-      ↓
-Apply Metadata Filters
-      ↓
-Select Top-K Relevant Chunks
-      ↓
-Build Prompt With Context
-      ↓
-Send Prompt To Ollama LLM
-      ↓
-Generate Answer
-      ↓
-Return Answer + Sources
+      │
+      ▼
+Question Embedding
+      │
+      ▼
+FAISS Semantic Search
+      │
+      ▼
+Candidate Retrieval
+      │
+      ▼
+Metadata Filtering
+      │
+      ▼
+Top-K Relevant Chunks
+      │
+      ▼
+Context Construction
+      │
+      ▼
+Prompt Construction
+      │
+      ▼
+Ollama LLM
+      │
+      ▼
+Generated Answer
+      │
+      ▼
+Answer + Sources
 ```
 
 ---
 
 # 🧰 Tech Stack
 
+## Backend
+
 * Python
 * FastAPI
+* Uvicorn
+* Pydantic
+
+## RAG / AI
+
 * LlamaIndex
 * FAISS CPU
 * Ollama
 * Nomic Embed Text
 * Qwen / Llama
+
+## Data Processing
+
+* LlamaIndex PDF Loader
+* LlamaIndex `SentenceSplitter`
 * NumPy
-* PyMuPDF
-* Pydantic
-* Uvicorn
 * Pickle
+
+## Infrastructure
+
+* Docker
+* Docker Compose
+
+> **Note:** PyMuPDF is **not used** in this project.
 
 ---
 
@@ -107,75 +151,137 @@ Return Answer + Sources
 ```text
 enterprise-rag/
 │
+├── Dockerfile
+├── README.md
+├── requirements.txt
+├── docker-compose.yml
+│
 ├── app/
+│   ├── __init__.py
+│   │
+│   ├── api/
+│   │
+│   ├── chunking/
+│   │   ├── __init__.py
+│   │   └── chunker.py
+│   │
+│   ├── config/
+│   │
+│   ├── core/
+│   │
+│   ├── embeddings/
+│   │   ├── __init__.py
+│   │   └── embedder.py
+│   │
+│   ├── llm/
+│   │   ├── __init__.py
+│   │   └── ollama_llm.py
+│   │
 │   ├── loaders/
 │   │   └── pdf_loader.py
 │   │
-│   ├── chunking/
-│   │   └── chunker.py
+│   ├── main.py
 │   │
-│   ├── embeddings/
-│   │   └── embedder.py
+│   ├── rag/
+│   │   ├── __init__.py
+│   │   ├── rag_pipeline.py
+│   │   └── test_rag.py
 │   │
-│   ├── vectorstore/
-│   │   └── index.py
+│   ├── retrieval/
+│   │   ├── search.py
+│   │   └── test_search.py
 │   │
-│   └── rag/
-│       ├── rag_pipeline.py
-│       └── test_rag.py
+│   ├── schemas/
+│   │
+│   ├── services/
+│   │
+│   ├── utils/
+│   │
+│   └── vectorstore/
+│       ├── __init__.py
+│       └── index.py
 │
 ├── data/
-│   └── pdf/
-│       ├── hr/
-│       │   └── Leave_Policy.pdf
-│       │
-│       └── cloud/
-│           └── aws_policy.pdf
+│   ├── faiss/
+│   │
+│   ├── pdf/
+│   │   ├── cloud/
+│   │   │   ├── DigitalOcean_policies.pdf
+│   │   │   └── aws_policy.pdf
+│   │   │
+│   │   ├── hr/
+│   │   │   └── Leave_Policy.pdf
+│   │   │
+│   │   └── travel/
+│   │       └── travel_policy.pdf
+│   │
+│   └── processed/
+│
+├── docs/
+│
+├── logs/
+│
+├── tests/
 │
 ├── vectorstore/
 │   ├── index.faiss
 │   └── metadata.pkl
 │
-├── main.py
-├── requirements.txt
-├── Dockerfile
-├── docker-compose.yml
-├── .gitignore
-└── README.md
+├── pass
+├── pass.pub
+└── project_backup.zip
 ```
 
 ---
 
 # 📌 Milestone 1 — Project Setup
 
-Created the initial Enterprise RAG project structure.
+Created the initial modular Enterprise RAG project structure.
 
-The application is organized into modular components for:
+The application is separated into dedicated modules for:
 
+* API layer
+* Configuration
+* Core functionality
 * PDF loading
 * Document chunking
 * Embedding generation
+* LLM integration
+* Retrieval
 * Vector storage
-* Semantic search
 * RAG pipeline
-* FastAPI APIs
+* Schemas
+* Services
+* Utilities
+* Testing
 
-The modular structure allows each component to be developed, tested, and extended independently.
+This modular structure makes the project easier to maintain and extend.
 
 ---
 
-# 📄 Milestone 2 — PDF Loading
+# 📄 Milestone 2 — PDF Document Loading
 
-PDF documents are loaded using LlamaIndex.
+PDF documents are loaded using **LlamaIndex**.
 
-Current test documents include:
+Current enterprise documents include:
 
 ```text
-Leave_Policy.pdf
-aws_policy.pdf
+data/pdf/
+
+├── cloud/
+│   ├── DigitalOcean_policies.pdf
+│   └── aws_policy.pdf
+│
+├── hr/
+│   └── Leave_Policy.pdf
+│
+└── travel/
+    └── travel_policy.pdf
 ```
 
-The loader extracts document content and metadata such as:
+The loader extracts document content along with document metadata.
+
+Example metadata:
 
 ```text
 file_name
@@ -187,13 +293,13 @@ creation_date
 last_modified_date
 ```
 
-This metadata is later used during metadata-based retrieval.
+The metadata is preserved and later used for filtering and source attribution.
 
 ---
 
 # ✂️ Milestone 3 — Document Chunking
 
-Documents are split into smaller chunks using LlamaIndex `SentenceSplitter`.
+Documents are divided into smaller chunks using LlamaIndex `SentenceSplitter`.
 
 Current configuration:
 
@@ -204,19 +310,36 @@ SentenceSplitter(
 )
 ```
 
-Chunking allows large documents to be divided into smaller semantic units that can be efficiently embedded and retrieved.
+The purpose of chunking is to:
+
+* Reduce the size of retrieved context
+* Improve semantic retrieval
+* Create meaningful embedding units
+* Prevent unnecessarily large prompts
+
+Pipeline:
+
+```text
+PDF
+ ↓
+Documents
+ ↓
+Sentences / Text
+ ↓
+Chunks
+```
 
 ---
 
 # 🧠 Milestone 4 — Embedding Generation
 
-The project uses Ollama locally with:
+The project uses Ollama for local embedding generation.
+
+Embedding model:
 
 ```text
 nomic-embed-text
 ```
-
-Each document chunk is converted into a numerical vector.
 
 Current embedding dimension:
 
@@ -224,7 +347,7 @@ Current embedding dimension:
 768
 ```
 
-Embedding workflow:
+Embedding pipeline:
 
 ```text
 Text Chunk
@@ -236,15 +359,17 @@ nomic-embed-text
 768-dimensional vector
 ```
 
+The generated vectors are used for semantic retrieval.
+
 ---
 
-# 🗄️ Milestone 5 — FAISS Vector Index
+# 🗄️ Milestone 5 — FAISS Vector Indexing
 
-FAISS CPU is used for vector similarity search.
+FAISS CPU is used as the vector search engine.
 
-The generated embeddings are converted into a NumPy matrix and stored in a FAISS index.
+The generated embeddings are stored in a FAISS index.
 
-Output files:
+Current vector store:
 
 ```text
 vectorstore/
@@ -258,46 +383,75 @@ Current index information:
 ```text
 FAISS vectors : 91
 Dimensions    : 768
+Index type    : IndexFlatL2
 ```
 
-The FAISS index stores the vectors, while `metadata.pkl` stores the corresponding chunk text and document metadata.
+The architecture separates vector storage from document metadata.
 
-This allows a retrieved FAISS vector ID to be mapped back to the original document chunk.
+```text
+index.faiss
+     ↓
+Vector representation
+
+metadata.pkl
+     ↓
+Chunk text + metadata
+```
+
+FAISS vector IDs are used to map retrieved vectors back to the original document chunks.
 
 ---
 
 # 🔎 Milestone 6 — Semantic Search
 
-Semantic search retrieves document chunks that are semantically relevant to a user's question.
+Semantic search retrieves document chunks based on vector similarity rather than exact keyword matching.
 
-Flow:
+Search flow:
 
 ```text
-Question
-   ↓
+User Question
+      ↓
 Question Embedding
-   ↓
-FAISS Vector Search
-   ↓
-Relevant Chunks
+      ↓
+FAISS Search
+      ↓
+Relevant Candidate Chunks
 ```
 
-Example question:
+Example:
 
 ```text
+Question:
 What is the maximum casual leave allowed per month?
 ```
 
-The system converts the question into an embedding and searches the FAISS index for the closest vectors.
+The question is converted into an embedding and compared against document embeddings stored in FAISS.
 
-The retrieved results include:
+The search results contain:
 
 * Rank
 * Distance score
 * Text
-* Document metadata
+* Metadata
 
-> Note: The current FAISS index uses L2 distance, so a lower distance generally represents a more similar vector. The distance value should not be interpreted as a percentage similarity score.
+### FAISS Distance
+
+The current index uses:
+
+```text
+IndexFlatL2
+```
+
+Therefore the returned score represents **L2 distance**.
+
+Generally:
+
+```text
+Lower distance  → More similar
+Higher distance → Less similar
+```
+
+The distance should not be interpreted as a percentage similarity score.
 
 ---
 
@@ -305,29 +459,46 @@ The retrieved results include:
 
 Ollama is used to run the LLM locally.
 
-The application connects to the locally running Ollama server.
+LLM integration is implemented in:
+
+```text
+app/llm/ollama_llm.py
+```
 
 Architecture:
 
 ```text
-Application
-     ↓
+RAG Application
+      ↓
 Ollama
-     ↓
+      ↓
 Local LLM
-     ↓
+      ↓
 Generated Response
 ```
 
-Using Ollama allows the project to run the LLM locally without depending entirely on a hosted LLM API.
+The project can use local models such as:
 
-Models such as Qwen / Llama can be used for response generation.
+```text
+Qwen
+Llama
+```
+
+This allows the RAG system to generate answers without requiring a hosted LLM API for the generation step.
 
 ---
 
 # 🧩 Milestone 8 — Complete RAG Pipeline
 
 The complete RAG pipeline combines retrieval and generation.
+
+Implementation:
+
+```text
+app/rag/rag_pipeline.py
+```
+
+Pipeline:
 
 ```text
 User Question
@@ -344,9 +515,132 @@ Construct Prompt
       ↓
 Ollama LLM
       ↓
-Generated Answer
+Generate Answer
       ↓
-Sources
+Return Answer + Sources
+```
+
+Example:
+
+```json
+{
+    "question": "What is the maximum casual leave allowed per month?",
+    "answer": "The maximum casual leave allowed per month is a total of 3 days.",
+    "sources": [
+        {
+            "rank": 1,
+            "score": 0.46,
+            "text": "...",
+            "metadata": {
+                "file_name": "Leave_Policy.pdf",
+                "page_label": "2"
+            }
+        }
+    ]
+}
+```
+
+The retrieved sources provide transparency and allow users to identify where the answer originated.
+
+---
+
+# 🌐 Milestone 9 — FastAPI APIs
+
+The RAG system is exposed through FastAPI REST APIs.
+
+The API layer provides access to ingestion, retrieval, health checking, and question answering.
+
+Current API operations include:
+
+```text
+GET  /health
+POST /ingest
+POST /search
+POST /ask
+```
+
+---
+
+## Health Check
+
+```text
+GET /health
+```
+
+Used to verify that the API service is running.
+
+Example:
+
+```json
+{
+    "status": "healthy"
+}
+```
+
+---
+
+## Document Ingestion
+
+```text
+POST /ingest
+```
+
+The ingestion endpoint processes the configured documents and creates/updates the vector index.
+
+Pipeline:
+
+```text
+PDF Documents
+      ↓
+Load
+      ↓
+Chunk
+      ↓
+Embed
+      ↓
+FAISS
+      ↓
+Metadata
+```
+
+---
+
+## Semantic Search
+
+```text
+POST /search
+```
+
+The search endpoint performs semantic retrieval and supports metadata filtering.
+
+Example concept:
+
+```text
+Question
++
+Metadata Filters
+        ↓
+Semantic Search
+        ↓
+Filtered Results
+```
+
+---
+
+## RAG Question Answering
+
+```text
+POST /ask
+```
+
+The endpoint executes the complete RAG pipeline.
+
+Example request:
+
+```json
+{
+    "question": "What is the maximum casual leave allowed per month?"
+}
 ```
 
 Example response:
@@ -369,88 +663,19 @@ Example response:
 }
 ```
 
-The `sources` field provides transparency by showing the document chunks used during retrieval.
-
----
-
-# 🌐 Milestone 9 — FastAPI APIs
-
-The RAG application has been exposed through FastAPI REST APIs.
-
-The API layer provides an interface between clients and the RAG pipeline.
-
-Core API operations include:
-
-```text
-GET  /health
-POST /ingest
-POST /search
-POST /ask
-```
-
-### Health Check
-
-```text
-GET /health
-```
-
-Used to verify that the API service is running.
-
-Example response:
-
-```json
-{
-    "status": "healthy"
-}
-```
-
-### Document Ingestion
-
-```text
-POST /ingest
-```
-
-Triggers document ingestion and builds the FAISS vector index.
-
-### Semantic Search
-
-```text
-POST /search
-```
-
-Used to search the indexed documents and return relevant chunks.
-
-### RAG Question Answering
-
-```text
-POST /ask
-```
-
-Used to send a question to the RAG pipeline and receive:
-
-* Generated answer
-* Retrieved sources
-* Document metadata
-
-Example request:
-
-```json
-{
-    "question": "What is the maximum casual leave allowed per month?"
-}
-```
-
 ---
 
 # 🔐 Milestone 10 — Metadata Filtering
 
-Metadata filtering has now been implemented.
+Metadata filtering has been implemented as part of the retrieval layer.
 
-The search system can combine:
+Implementation:
 
-**Semantic Search + Metadata Filtering**
+```text
+app/retrieval/search.py
+```
 
-Supported filters include:
+The retrieval system supports:
 
 ```text
 file_name
@@ -458,22 +683,7 @@ department
 page_label
 ```
 
-Example:
-
-```text
-Question:
-What is earned leave?
-
-Filters:
-
-file_name  = Leave_Policy.pdf
-department = hr
-page_label = 2
-```
-
-The system first performs vector search and retrieves multiple candidates.
-
-It then applies the metadata filters before returning the final results.
+This allows semantic search to be combined with structured document filtering.
 
 ---
 
@@ -486,9 +696,7 @@ Question Embedding
       ↓
 FAISS Search
       ↓
-Retrieve Candidate Results
-      ↓
-Metadata Filtering
+Candidate Retrieval
       ↓
 File Name Filter
       ↓
@@ -501,72 +709,92 @@ Top-K Results
 
 ---
 
-## Candidate Retrieval Strategy
+## Example
 
-The system retrieves more candidates than the requested `top_k` before applying metadata filters.
+Question:
 
-For example:
+```text
+What is earned leave?
+```
+
+Filters:
+
+```text
+file_name  = Leave_Policy.pdf
+department = hr
+page_label = 2
+```
+
+The system first retrieves semantically similar candidates and then checks whether each candidate satisfies the requested metadata filters.
+
+---
+
+## Candidate Retrieval
+
+The system retrieves more candidates than the requested final `top_k`.
+
+Example:
 
 ```python
 candidate_k = top_k * 4
 ```
 
-If:
+For:
 
 ```text
 top_k = 5
 ```
 
-the system initially retrieves:
+the system retrieves:
 
 ```text
-5 × 4 = 20 candidates
-```
-
-Then metadata filtering is applied.
-
-```text
-FAISS
-  ↓
 20 candidates
-  ↓
-Metadata filtering
-  ↓
-Valid results
-  ↓
-Top 5
 ```
 
-This approach helps prevent relevant results from being lost when some of the highest-ranked semantic results do not satisfy the requested metadata filters.
+before applying metadata filters.
+
+```text
+FAISS Search
+     ↓
+20 Candidates
+     ↓
+Metadata Filtering
+     ↓
+Valid Candidates
+     ↓
+Top 5 Results
+```
+
+This improves retrieval robustness when some of the highest-ranked semantic results do not satisfy the requested filters.
 
 ---
 
-# 🔍 Metadata Matching Logic
-
-The current implementation supports:
+## Metadata Filter Logic
 
 ### File Name
+
+Example:
 
 ```text
 Leave_Policy.pdf
 ```
 
-Only chunks belonging to the requested file are returned.
+Only chunks from the requested file are returned.
 
 ### Department
 
-The department is determined from the document path.
+The department is derived from the document path.
 
 Example:
 
 ```text
-documents/hr/Leave_Policy.pdf
+data/pdf/hr/Leave_Policy.pdf
 ```
 
-The system can identify:
+The department is:
 
 ```text
-department = hr
+hr
 ```
 
 ### Page
@@ -577,9 +805,9 @@ The search can be restricted to a specific page:
 page_label = 2
 ```
 
-All supplied filters are treated as AND conditions.
+All supplied filters are combined using AND logic.
 
-For example:
+Example:
 
 ```text
 file_name = Leave_Policy.pdf
@@ -589,13 +817,13 @@ AND
 page_label = 2
 ```
 
-A chunk must satisfy all requested filters to be included in the final results.
+A result must satisfy all supplied filters to be returned.
 
 ---
 
-# 📡 Current RAG API Example
+# 📡 API Request Example
 
-### Request
+## Basic Search
 
 ```json
 {
@@ -603,16 +831,33 @@ A chunk must satisfy all requested filters to be included in the final results.
 }
 ```
 
-### Response
+## Search With Metadata Filters
 
 ```json
 {
-    "question": "What is the maximum casual leave allowed per month?",
-    "answer": "The maximum casual leave allowed per month is a total of 3 days.",
-    "sources": [
+    "question": "What is earned leave?",
+    "filters": {
+        "file_name": "Leave_Policy.pdf",
+        "department": "hr",
+        "page_label": "2"
+    }
+}
+```
+
+Example result structure:
+
+```json
+{
+    "question": "What is earned leave?",
+    "filters": {
+        "file_name": "Leave_Policy.pdf",
+        "department": "hr",
+        "page_label": "2"
+    },
+    "results": [
         {
             "rank": 1,
-            "score": 0.46,
+            "score": 0.54,
             "text": "...",
             "metadata": {
                 "file_name": "Leave_Policy.pdf",
@@ -658,7 +903,7 @@ http://localhost:11434
 ## 5. Start FastAPI
 
 ```bash
-python -m uvicorn main:app --reload
+python -m uvicorn app.main:app --reload
 ```
 
 The API will be available at:
@@ -677,55 +922,178 @@ http://127.0.0.1:8000/docs
 
 # 🧪 Testing
 
-The RAG pipeline can be tested from the terminal:
+The RAG pipeline can be tested using:
 
 ```bash
 python -m app.rag.test_rag
 ```
 
-The FastAPI `/ask` endpoint can be tested using:
+Semantic retrieval can be tested using:
 
 ```bash
-curl -X POST "http://127.0.0.1:8000/ask" \
--H "Content-Type: application/json" \
--d '{"question":"What is the maximum casual leave allowed per month?"}'
+python -m app.retrieval.test_search
 ```
 
-The `/search` endpoint can be used to test semantic search and metadata filtering independently.
+FastAPI APIs can be tested through Swagger:
+
+```text
+http://127.0.0.1:8000/docs
+```
 
 ---
 
-# 🎯 Project Goal
+# 🐳 Docker
 
-The goal of this project is to build a practical, modular, production-style RAG system demonstrating:
+The project also contains Docker configuration:
+
+```text
+Dockerfile
+docker-compose.yml
+```
+
+Docker can be used to package and run the application in a consistent environment.
+
+---
+
+# 📚 Supported Document Categories
+
+Current enterprise documents are organized by category:
+
+```text
+data/pdf/
+
+├── cloud/
+│   ├── DigitalOcean_policies.pdf
+│   └── aws_policy.pdf
+│
+├── hr/
+│   └── Leave_Policy.pdf
+│
+└── travel/
+    └── travel_policy.pdf
+```
+
+This directory organization also provides a foundation for department/category-based metadata filtering.
+
+---
+
+# 🎯 Project Goals
+
+The main goal is to build a practical Enterprise RAG system demonstrating core AI Engineering concepts:
 
 * Document ingestion
 * PDF processing
 * Document chunking
 * Embedding generation
 * Vector indexing
-* FAISS similarity search
+* FAISS semantic search
 * Metadata management
 * Metadata filtering
 * Local LLM integration
+* Prompt construction
 * Retrieval-Augmented Generation
 * Source attribution
-* REST APIs
-* FastAPI
-* Local AI infrastructure
+* FastAPI REST APIs
+* Docker-based deployment
+* Modular software architecture
 
-The project is developed incrementally through milestones to understand the architecture and implementation of enterprise-grade RAG systems.
+---
+
+# 🧠 Key Concepts Implemented
+
+```text
+Document Processing
+        +
+Chunking
+        +
+Embeddings
+        +
+Vector Search
+        +
+FAISS
+        +
+Semantic Retrieval
+        +
+Metadata Filtering
+        +
+Prompt Engineering
+        +
+LLM Generation
+        +
+Source Attribution
+        +
+FastAPI
+        +
+Docker
+```
 
 ---
 
 # 📈 Development Progress
 
 ```text
-PDF Documents
+                    Enterprise RAG
+
+                         │
+                         ▼
+                  PDF Documents
+                         │
+                         ▼
+                 LlamaIndex Loader
+                         │
+                         ▼
+                     Chunking
+                         │
+                         ▼
+                    Embeddings
+                         │
+                         ▼
+                       FAISS
+                         │
+                         ▼
+                  Semantic Search
+                         │
+                         ▼
+                Metadata Filtering
+                         │
+                         ▼
+                    RAG Pipeline
+                         │
+                         ▼
+                    Ollama LLM
+                         │
+                         ▼
+                    FastAPI API
+                         │
+                         ▼
+                   Answer + Sources
+```
+
+### Milestone Completion
+
+```text
+Milestone 1  — Project Setup          ✅
+Milestone 2  — PDF Loading            ✅
+Milestone 3  — Document Chunking      ✅
+Milestone 4  — Embeddings             ✅
+Milestone 5  — FAISS Indexing         ✅
+Milestone 6  — Semantic Search        ✅
+Milestone 7  — Ollama LLM             ✅
+Milestone 8  — RAG Pipeline           ✅
+Milestone 9  — FastAPI APIs           ✅
+Milestone 10 — Metadata Filtering     ✅
+```
+
+# 🎉 Current Status
+
+**Enterprise RAG — Milestones 1–10 Complete**
+
+The project currently provides a complete modular RAG pipeline with:
+
+```text
+PDF Ingestion
       ↓
-LlamaIndex
-      ↓
-Document Chunking
+Chunking
       ↓
 Embeddings
       ↓
@@ -737,54 +1105,9 @@ Metadata Filtering
       ↓
 Ollama LLM
       ↓
-RAG Pipeline
+RAG
       ↓
 FastAPI
 ```
 
-### Current Progress
-
-```text
-Milestone 1  — Project Setup          ✅
-Milestone 2  — PDF Loading            ✅
-Milestone 3  — Chunking               ✅
-Milestone 4  — Embeddings             ✅
-Milestone 5  — FAISS Indexing         ✅
-Milestone 6  — Semantic Search        ✅
-Milestone 7  — Ollama LLM             ✅
-Milestone 8  — RAG Pipeline           ✅
-Milestone 9  — FastAPI APIs           ✅
-Milestone 10 — Metadata Filtering     ✅
-```
-
-**10/10 Milestones Completed 🎉**
-
----
-
-# 🧠 Key RAG Concepts Implemented
-
-This project currently demonstrates the following important AI Engineering concepts:
-
-```text
-Document Processing
-        +
-Chunking
-        +
-Embeddings
-        +
-Vector Database / FAISS
-        +
-Semantic Retrieval
-        +
-Metadata Filtering
-        +
-Prompt Construction
-        +
-LLM Generation
-        +
-Source Attribution
-        +
-FastAPI
-```
-
-The next phase can build on this foundation with more advanced Enterprise-RAG capabilities such as **hybrid search, reranking, evaluation, conversation memory, authentication, observability, and production deployment**.
+The foundation is now ready for the next stage of Enterprise RAG development, including advanced retrieval, evaluation, reranking, hybrid search, observability, security, and production deployment.
