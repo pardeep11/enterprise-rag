@@ -32,43 +32,103 @@ The project is designed as a modular foundation for building production-oriented
 # 🏗️ Architecture
 
 ```text
-                    Enterprise Documents
-                           │
-                           ▼
-                    PDF Document Loader
-                       (LlamaIndex)
-                           │
-                           ▼
-                    Document Chunking
-                    (SentenceSplitter)
-                           │
-                           ▼
-                    Embedding Generation
-                     (Ollama Embeddings)
-                           │
-                           ▼
-                     FAISS Vector Store
-                           │
-                           ▼
-                    Semantic Retrieval
-                           │
-                           ▼
-                   Metadata Filtering
-                           │
-                           ▼
-                    Relevant Top-K Chunks
-                           │
-                           ▼
-                    Prompt Construction
-                           │
-                           ▼
-                       Ollama LLM
-                           │
-                           ▼
-                    Grounded Answer
-                           │
-                           ▼
-                     FastAPI REST API
+                                        ┌─────────────────────────┐
+                    │   Enterprise Documents  │
+                    │       PDF Files         │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │   LlamaIndex Loader     │
+                    │   PDF + Metadata        │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │       Chunking           │
+                    │   SentenceSplitter       │
+                    │  chunk=256, overlap=30   │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │   Embedding Generation   │
+                    │      Ollama              │
+                    │   nomic-embed-text       │
+                    │      768 dimensions      │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │     FAISS Vector Store   │
+                    │       IndexFlatL2        │
+                    │                          │
+                    │     index.faiss          │
+                    │     metadata.pkl         │
+                    └────────────┬────────────┘
+                                 │
+                                 │
+                    ┌────────────▼────────────┐
+                    │       User Question      │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │   Question Embedding    │
+                    │        Ollama            │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │    FAISS Semantic Search │
+                    │                          │
+                    │   Candidate Retrieval    │
+                    │       Top-K × 4          │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │   Metadata Filtering     │
+                    │                          │
+                    │   file_name              │
+                    │   department             │
+                    │   page_label             │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │   Top-K Relevant Chunks  │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │   Context Construction   │
+                    │           +             │
+                    │    Prompt Construction  │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │       Ollama LLM         │
+                    │      Qwen / Llama        │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │    Answer + Sources      │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │        FastAPI           │
+                    │                          │
+                    │  GET  /health            │
+                    │  POST /ingest            │
+                    │  POST /search            │
+                    │  POST /ask               │
+                    └─────────────────────────┘
+
+                    
 ```
 
 ---
