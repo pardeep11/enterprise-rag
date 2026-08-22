@@ -2,28 +2,30 @@
 
 An end-to-end Retrieval-Augmented Generation (RAG) application built with Python, LlamaIndex, FAISS CPU, Ollama, and FastAPI.
 
-The project loads PDF documents, splits them into chunks, generates embeddings, stores vectors in FAISS, performs semantic search, and uses an Ollama LLM to generate answers from retrieved context.
+The project loads PDF documents, splits them into chunks, generates embeddings, stores vectors in FAISS, performs semantic search, applies metadata filtering, and uses an Ollama LLM to generate answers from retrieved context.
 
 ---
 
 ## 🚀 Project Status
 
-| Milestone | Description | Status |
-|---|---|---|
-| 1 | Project Setup | ✅ Complete |
-| 2 | PDF Document Loading | ✅ Complete |
-| 3 | Document Chunking | ✅ Complete |
-| 4 | Embedding Generation | ✅ Complete |
-| 5 | FAISS Vector Indexing | ✅ Complete |
-| 6 | Semantic Search | ✅ Complete |
-| 7 | Ollama LLM Integration | ✅ Complete |
-| 8 | Complete RAG Pipeline | ✅ Complete |
-| 9 | FastAPI APIs | ✅ Complete |
-| 10 | Metadata Filtering | 🔜 Next |
+| Milestone | Description            | Status     |
+| --------- | ---------------------- | ---------- |
+| 1         | Project Setup          | ✅ Complete |
+| 2         | PDF Document Loading   | ✅ Complete |
+| 3         | Document Chunking      | ✅ Complete |
+| 4         | Embedding Generation   | ✅ Complete |
+| 5         | FAISS Vector Indexing  | ✅ Complete |
+| 6         | Semantic Search        | ✅ Complete |
+| 7         | Ollama LLM Integration | ✅ Complete |
+| 8         | Complete RAG Pipeline  | ✅ Complete |
+| 9         | FastAPI APIs           | ✅ Complete |
+| 10        | Metadata Filtering     | ✅ Complete |
+
+**Current Progress: 10/10 milestones completed 🎉**
 
 ---
 
-## 🏗️ Architecture
+# 🏗️ Architecture
 
 ```text
 PDF Documents
@@ -34,45 +36,56 @@ Document Chunking
       ↓
 Ollama Embeddings
       ↓
-FAISS CPU
+FAISS Vector Index
       ↓
 Semantic Search
       ↓
-Top 5 Relevant Chunks
+Candidate Retrieval
       ↓
-Chat Prompt
+Metadata Filtering
+      ↓
+Top Relevant Chunks
+      ↓
+Prompt Construction
       ↓
 Ollama LLM
       ↓
-Final Answer
+Generated Answer
       ↓
 FastAPI
-````
+```
 
 ---
 
-## 🔄 RAG Pipeline
+# 🔄 RAG Pipeline
 
 The complete RAG workflow:
 
 ```text
-Question
-   ↓
+User Question
+      ↓
 Generate Question Embedding
-   ↓
-FAISS Similarity Search
-   ↓
-Retrieve Top 5 Chunks
-   ↓
+      ↓
+FAISS Vector Search
+      ↓
+Retrieve Candidate Chunks
+      ↓
+Apply Metadata Filters
+      ↓
+Select Top-K Relevant Chunks
+      ↓
 Build Prompt With Context
-   ↓
+      ↓
 Send Prompt To Ollama LLM
-   ↓
+      ↓
 Generate Answer
+      ↓
+Return Answer + Sources
 ```
+
 ---
 
-## 🧰 Tech Stack
+# 🧰 Tech Stack
 
 * Python
 * FastAPI
@@ -85,6 +98,7 @@ Generate Answer
 * PyMuPDF
 * Pydantic
 * Uvicorn
+* Pickle
 
 ---
 
@@ -136,14 +150,17 @@ enterprise-rag/
 
 Created the initial Enterprise RAG project structure.
 
-The project is organized into separate modules for:
+The application is organized into modular components for:
 
 * PDF loading
 * Document chunking
-* Embeddings
+* Embedding generation
 * Vector storage
+* Semantic search
 * RAG pipeline
-* FastAPI
+* FastAPI APIs
+
+The modular structure allows each component to be developed, tested, and extended independently.
 
 ---
 
@@ -170,6 +187,8 @@ creation_date
 last_modified_date
 ```
 
+This metadata is later used during metadata-based retrieval.
+
 ---
 
 # ✂️ Milestone 3 — Document Chunking
@@ -185,7 +204,7 @@ SentenceSplitter(
 )
 ```
 
-The purpose of chunking is to create smaller pieces of text that can be embedded and searched efficiently.
+Chunking allows large documents to be divided into smaller semantic units that can be efficiently embedded and retrieved.
 
 ---
 
@@ -205,7 +224,7 @@ Current embedding dimension:
 768
 ```
 
-Example:
+Embedding workflow:
 
 ```text
 Text Chunk
@@ -223,12 +242,13 @@ nomic-embed-text
 
 FAISS CPU is used for vector similarity search.
 
-The generated embeddings are converted into a NumPy matrix and stored in FAISS.
+The generated embeddings are converted into a NumPy matrix and stored in a FAISS index.
 
 Output files:
 
 ```text
 vectorstore/
+
 ├── index.faiss
 └── metadata.pkl
 ```
@@ -240,13 +260,15 @@ FAISS vectors : 91
 Dimensions    : 768
 ```
 
-The metadata file stores the original chunk text and document metadata so that retrieved vectors can be mapped back to their source content.
+The FAISS index stores the vectors, while `metadata.pkl` stores the corresponding chunk text and document metadata.
+
+This allows a retrieved FAISS vector ID to be mapped back to the original document chunk.
 
 ---
 
 # 🔎 Milestone 6 — Semantic Search
 
-Semantic search retrieves the most relevant chunks for a user's question.
+Semantic search retrieves document chunks that are semantically relevant to a user's question.
 
 Flow:
 
@@ -255,9 +277,9 @@ Question
    ↓
 Question Embedding
    ↓
-FAISS Similarity Search
+FAISS Vector Search
    ↓
-Top 5 Relevant Chunks
+Relevant Chunks
 ```
 
 Example question:
@@ -266,28 +288,26 @@ Example question:
 What is the maximum casual leave allowed per month?
 ```
 
-The system retrieves relevant sections from:
-
-```text
-Leave_Policy.pdf
-```
+The system converts the question into an embedding and searches the FAISS index for the closest vectors.
 
 The retrieved results include:
 
 * Rank
-* Similarity score
+* Distance score
 * Text
 * Document metadata
 
+> Note: The current FAISS index uses L2 distance, so a lower distance generally represents a more similar vector. The distance value should not be interpreted as a percentage similarity score.
+
 ---
 
-# 🤖 Milestone 7 — Ollama LLM
+# 🤖 Milestone 7 — Ollama LLM Integration
 
 Ollama is used to run the LLM locally.
 
-The application connects to a locally running Ollama server.
+The application connects to the locally running Ollama server.
 
-Example:
+Architecture:
 
 ```text
 Application
@@ -296,10 +316,12 @@ Ollama
      ↓
 Local LLM
      ↓
-Response
+Generated Response
 ```
 
-This allows the RAG application to use a locally running model instead of depending on a hosted LLM API.
+Using Ollama allows the project to run the LLM locally without depending entirely on a hosted LLM API.
+
+Models such as Qwen / Llama can be used for response generation.
 
 ---
 
@@ -312,18 +334,20 @@ User Question
       ↓
 Question Embedding
       ↓
-FAISS Similarity Search
+FAISS Semantic Search
       ↓
-Top 5 Relevant Chunks
+Retrieve Relevant Chunks
       ↓
-Chat Prompt
+Build Context
+      ↓
+Construct Prompt
       ↓
 Ollama LLM
       ↓
 Generated Answer
+      ↓
+Sources
 ```
-
-The application also returns the retrieved sources.
 
 Example response:
 
@@ -345,13 +369,68 @@ Example response:
 }
 ```
 
+The `sources` field provides transparency by showing the document chunks used during retrieval.
+
 ---
 
-# 🌐 Current API
+# 🌐 Milestone 9 — FastAPI APIs
 
-The current RAG application exposes a question-answering endpoint.
+The RAG application has been exposed through FastAPI REST APIs.
 
-## POST `/ask`
+The API layer provides an interface between clients and the RAG pipeline.
+
+Core API operations include:
+
+```text
+GET  /health
+POST /ingest
+POST /search
+POST /ask
+```
+
+### Health Check
+
+```text
+GET /health
+```
+
+Used to verify that the API service is running.
+
+Example response:
+
+```json
+{
+    "status": "healthy"
+}
+```
+
+### Document Ingestion
+
+```text
+POST /ingest
+```
+
+Triggers document ingestion and builds the FAISS vector index.
+
+### Semantic Search
+
+```text
+POST /search
+```
+
+Used to search the indexed documents and return relevant chunks.
+
+### RAG Question Answering
+
+```text
+POST /ask
+```
+
+Used to send a question to the RAG pipeline and receive:
+
+* Generated answer
+* Retrieved sources
+* Document metadata
 
 Example request:
 
@@ -361,35 +440,206 @@ Example request:
 }
 ```
 
-Example response:
+---
+
+# 🔐 Milestone 10 — Metadata Filtering
+
+Metadata filtering has now been implemented.
+
+The search system can combine:
+
+**Semantic Search + Metadata Filtering**
+
+Supported filters include:
+
+```text
+file_name
+department
+page_label
+```
+
+Example:
+
+```text
+Question:
+What is earned leave?
+
+Filters:
+
+file_name  = Leave_Policy.pdf
+department = hr
+page_label = 2
+```
+
+The system first performs vector search and retrieves multiple candidates.
+
+It then applies the metadata filters before returning the final results.
+
+---
+
+## Metadata Filtering Flow
+
+```text
+User Question
+      ↓
+Question Embedding
+      ↓
+FAISS Search
+      ↓
+Retrieve Candidate Results
+      ↓
+Metadata Filtering
+      ↓
+File Name Filter
+      ↓
+Department Filter
+      ↓
+Page Filter
+      ↓
+Top-K Results
+```
+
+---
+
+## Candidate Retrieval Strategy
+
+The system retrieves more candidates than the requested `top_k` before applying metadata filters.
+
+For example:
+
+```python
+candidate_k = top_k * 4
+```
+
+If:
+
+```text
+top_k = 5
+```
+
+the system initially retrieves:
+
+```text
+5 × 4 = 20 candidates
+```
+
+Then metadata filtering is applied.
+
+```text
+FAISS
+  ↓
+20 candidates
+  ↓
+Metadata filtering
+  ↓
+Valid results
+  ↓
+Top 5
+```
+
+This approach helps prevent relevant results from being lost when some of the highest-ranked semantic results do not satisfy the requested metadata filters.
+
+---
+
+# 🔍 Metadata Matching Logic
+
+The current implementation supports:
+
+### File Name
+
+```text
+Leave_Policy.pdf
+```
+
+Only chunks belonging to the requested file are returned.
+
+### Department
+
+The department is determined from the document path.
+
+Example:
+
+```text
+documents/hr/Leave_Policy.pdf
+```
+
+The system can identify:
+
+```text
+department = hr
+```
+
+### Page
+
+The search can be restricted to a specific page:
+
+```text
+page_label = 2
+```
+
+All supplied filters are treated as AND conditions.
+
+For example:
+
+```text
+file_name = Leave_Policy.pdf
+AND
+department = hr
+AND
+page_label = 2
+```
+
+A chunk must satisfy all requested filters to be included in the final results.
+
+---
+
+# 📡 Current RAG API Example
+
+### Request
+
+```json
+{
+    "question": "What is the maximum casual leave allowed per month?"
+}
+```
+
+### Response
 
 ```json
 {
     "question": "What is the maximum casual leave allowed per month?",
     "answer": "The maximum casual leave allowed per month is a total of 3 days.",
-    "sources": [...]
+    "sources": [
+        {
+            "rank": 1,
+            "score": 0.46,
+            "text": "...",
+            "metadata": {
+                "file_name": "Leave_Policy.pdf",
+                "page_label": "2"
+            }
+        }
+    ]
 }
 ```
-
-The `sources` field contains the chunks retrieved by FAISS and their document metadata.
 
 ---
 
 # ▶️ Running the Project
 
-## 1. Create virtual environment
+## 1. Create Virtual Environment
 
 ```bash
 python3 -m venv .venv
 ```
 
-## 2. Activate virtual environment
+## 2. Activate Virtual Environment
 
 ```bash
 source .venv/bin/activate
 ```
 
-## 3. Install dependencies
+## 3. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -399,7 +649,7 @@ pip install -r requirements.txt
 
 Make sure Ollama is running locally.
 
-The application uses:
+Default Ollama endpoint:
 
 ```text
 http://localhost:11434
@@ -427,7 +677,7 @@ http://127.0.0.1:8000/docs
 
 # 🧪 Testing
 
-The RAG pipeline can be tested from the terminal.
+The RAG pipeline can be tested from the terminal:
 
 ```bash
 python -m app.rag.test_rag
@@ -441,108 +691,100 @@ curl -X POST "http://127.0.0.1:8000/ask" \
 -d '{"question":"What is the maximum casual leave allowed per month?"}'
 ```
 
----
-
-# 🔜 Upcoming Milestones
-
-## Milestone 9 — FastAPI APIs
-
-Planned APIs:
-
-```text
-GET  /health
-POST /ingest
-POST /search
-POST /chat
-```
-
----
-
-## Milestone 10 — Metadata Filtering
-
-The RAG system will support metadata-based filtering.
-
-Planned metadata:
-
-```text
-filename
-page
-department
-policy_type
-```
-
-Example filters:
-
-```text
-Search only HR
-Search only Travel
-Search only Cloud
-```
+The `/search` endpoint can be used to test semantic search and metadata filtering independently.
 
 ---
 
 # 🎯 Project Goal
 
-The goal of this project is to build a practical, modular RAG system that demonstrates:
+The goal of this project is to build a practical, modular, production-style RAG system demonstrating:
 
 * Document ingestion
+* PDF processing
 * Document chunking
 * Embedding generation
 * Vector indexing
-* Semantic search
-* Metadata handling
+* FAISS similarity search
+* Metadata management
+* Metadata filtering
 * Local LLM integration
 * Retrieval-Augmented Generation
+* Source attribution
 * REST APIs
+* FastAPI
+* Local AI infrastructure
 
-The project is being developed incrementally through milestones to understand each component of a production-style RAG architecture.
+The project is developed incrementally through milestones to understand the architecture and implementation of enterprise-grade RAG systems.
 
 ---
 
 # 📈 Development Progress
 
 ```text
-PDF
- ↓
+PDF Documents
+      ↓
 LlamaIndex
- ↓
-Chunking
- ↓
+      ↓
+Document Chunking
+      ↓
 Embeddings
- ↓
+      ↓
 FAISS
- ↓
+      ↓
 Semantic Search
- ↓
-Ollama
- ↓
-RAG
- ↓
+      ↓
+Metadata Filtering
+      ↓
+Ollama LLM
+      ↓
+RAG Pipeline
+      ↓
 FastAPI
 ```
 
-Current progress:
+### Current Progress
 
 ```text
-Milestones 1–8 completed ✅
-
-Milestones 9–10 next 🔜
+Milestone 1  — Project Setup          ✅
+Milestone 2  — PDF Loading            ✅
+Milestone 3  — Chunking               ✅
+Milestone 4  — Embeddings             ✅
+Milestone 5  — FAISS Indexing         ✅
+Milestone 6  — Semantic Search        ✅
+Milestone 7  — Ollama LLM             ✅
+Milestone 8  — RAG Pipeline           ✅
+Milestone 9  — FastAPI APIs           ✅
+Milestone 10 — Metadata Filtering     ✅
 ```
+
+**10/10 Milestones Completed 🎉**
 
 ---
 
-# 👨‍💻 Project Development
+# 🧠 Key RAG Concepts Implemented
 
-This project is being developed milestone-by-milestone to build practical understanding of:
+This project currently demonstrates the following important AI Engineering concepts:
 
 ```text
-RAG
-+
-Vector Search
-+
-LLM
-+
+Document Processing
+        +
+Chunking
+        +
+Embeddings
+        +
+Vector Database / FAISS
+        +
+Semantic Retrieval
+        +
+Metadata Filtering
+        +
+Prompt Construction
+        +
+LLM Generation
+        +
+Source Attribution
+        +
 FastAPI
-+
-Local AI
 ```
+
+The next phase can build on this foundation with more advanced Enterprise-RAG capabilities such as **hybrid search, reranking, evaluation, conversation memory, authentication, observability, and production deployment**.
