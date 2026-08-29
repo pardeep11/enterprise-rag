@@ -145,9 +145,22 @@ __pycache__/
 # PDFs / private documents
 *.pdf
 
-# Generated vector database
-vectorstore/
+
 
 # Secrets / keys
 *.pem
 *.key
+
+.venv/
+__pycache__/
+*.pyc
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+
+
+# Generated BM25 index
+bm25_index/

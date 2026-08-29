@@ -132,6 +132,7 @@ def build_index():
         metadata.append(
             {
                 "text": node.text,
+                "node_id": node.id_,
                 "metadata": node.metadata,
             }
         )

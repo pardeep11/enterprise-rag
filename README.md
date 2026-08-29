@@ -1,8 +1,8 @@
 # Enterprise RAG
 
-An end-to-end Enterprise Retrieval-Augmented Generation (RAG) system built with **Python, LlamaIndex, FAISS CPU, Ollama, and FastAPI**.
+An end-to-end Enterprise Retrieval-Augmented Generation (RAG) system built with **Python, LlamaIndex, FAISS CPU, BM25, Ollama, and FastAPI**.
 
-The system processes enterprise PDF documents, creates semantic chunks, generates embeddings using Ollama, stores vectors in FAISS, performs semantic retrieval, applies metadata filtering, and uses a local Ollama LLM to generate grounded answers.
+The system processes enterprise PDF documents, creates semantic chunks, generates embeddings using Ollama, stores vectors in FAISS, performs semantic and keyword retrieval, combines both retrieval strategies using **Reciprocal Rank Fusion (RRF)**, applies metadata filtering, and uses a local Ollama LLM to generate grounded answers.
 
 The project is designed as a modular foundation for building production-oriented Enterprise RAG systems.
 
@@ -10,165 +10,179 @@ The project is designed as a modular foundation for building production-oriented
 
 # 🚀 Project Status
 
-| Milestone | Description            | Status     |
-| --------- | ---------------------- | ---------- |
-| 1         | Project Setup          | ✅ Complete |
-| 2         | PDF Document Loading   | ✅ Complete |
-| 3         | Document Chunking      | ✅ Complete |
-| 4         | Embedding Generation   | ✅ Complete |
-| 5         | FAISS Vector Indexing  | ✅ Complete |
-| 6         | Semantic Search        | ✅ Complete |
-| 7         | Ollama LLM Integration | ✅ Complete |
-| 8         | Complete RAG Pipeline  | ✅ Complete |
-| 9         | FastAPI APIs           | ✅ Complete |
-| 10        | Metadata Filtering     | ✅ Complete |
+| Milestone | Description                        | Status     |
+| --------- | ---------------------------------- | ---------- |
+| 1         | Project Setup                      | ✅ Complete |
+| 2         | PDF Document Loading               | ✅ Complete |
+| 3         | Document Chunking                  | ✅ Complete |
+| 4         | Embedding Generation               | ✅ Complete |
+| 5         | FAISS Vector Indexing              | ✅ Complete |
+| 6         | Semantic Search                    | ✅ Complete |
+| 7         | Ollama LLM Integration             | ✅ Complete |
+| 8         | Complete RAG Pipeline              | ✅ Complete |
+| 9         | FastAPI APIs                       | ✅ Complete |
+| 10        | Metadata Filtering                 | ✅ Complete |
+| 11        | Hybrid Search — FAISS + BM25 + RRF | ✅ Complete |
+| 12        | Reranking                          | 🔜 Next    |
 
 ### Current Progress
 
-**10/10 milestones completed 🎉**
+**11/11 implemented milestones completed 🎉**
+
+**Next milestone: Reranking**
 
 ---
 
 # 🏗️ Architecture
 
 ```text
-                                        ┌─────────────────────────┐
-                    │   Enterprise Documents  │
-                    │       PDF Files         │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │   LlamaIndex Loader     │
-                    │   PDF + Metadata        │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │       Chunking           │
-                    │   SentenceSplitter       │
-                    │  chunk=256, overlap=30   │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │   Embedding Generation   │
-                    │      Ollama              │
-                    │   nomic-embed-text       │
-                    │      768 dimensions      │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │     FAISS Vector Store   │
-                    │       IndexFlatL2        │
-                    │                          │
-                    │     index.faiss          │
-                    │     metadata.pkl         │
-                    └────────────┬────────────┘
-                                 │
-                                 │
-                    ┌────────────▼────────────┐
-                    │       User Question      │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │   Question Embedding    │
-                    │        Ollama            │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │    FAISS Semantic Search │
-                    │                          │
-                    │   Candidate Retrieval    │
-                    │       Top-K × 4          │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │   Metadata Filtering     │
-                    │                          │
-                    │   file_name              │
-                    │   department             │
-                    │   page_label             │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │   Top-K Relevant Chunks  │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │   Context Construction   │
-                    │           +             │
-                    │    Prompt Construction  │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │       Ollama LLM         │
-                    │      Qwen / Llama        │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │    Answer + Sources      │
-                    └────────────┬────────────┘
-                                 │
-                                 ▼
-                    ┌─────────────────────────┐
-                    │        FastAPI           │
-                    │                          │
-                    │  GET  /health            │
-                    │  POST /ingest            │
-                    │  POST /search            │
-                    │  POST /ask               │
-                    └─────────────────────────┘
-
-                    
+                         ┌─────────────────────────┐
+                         │   Enterprise Documents  │
+                         │        PDF Files        │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │    LlamaIndex Loader    │
+                         │      PDF + Metadata     │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │        Chunking         │
+                         │    SentenceSplitter     │
+                         │   chunk=256 overlap=30  │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │   Embedding Generation  │
+                         │         Ollama          │
+                         │    nomic-embed-text     │
+                         │      768 dimensions     │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │    FAISS Vector Store   │
+                         │       IndexFlatL2       │
+                         │                         │
+                         │      index.faiss        │
+                         │      metadata.pkl       │
+                         └────────────┬────────────┘
+                                      │
+                                      │
+                         ┌────────────▼────────────┐
+                         │      User Question      │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │    Query Processing     │
+                         └────────────┬────────────┘
+                                      │
+                         ┌────────────┴────────────┐
+                         │                         │
+                         ▼                         ▼
+              ┌───────────────────┐    ┌───────────────────┐
+              │  FAISS Semantic   │    │   BM25 Keyword    │
+              │      Search       │    │      Search       │
+              └─────────┬─────────┘    └─────────┬─────────┘
+                        │                        │
+                        │      node_id           │
+                        │      matching          │
+                        └───────────┬────────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────────┐
+                         │   RRF Hybrid Fusion     │
+                         │ Reciprocal Rank Fusion  │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │   Hybrid Top-K Results  │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │      Reranking          │
+                         │       (Next)             │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │    Context Construction │
+                         │            +            │
+                         │    Prompt Construction  │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │       Ollama LLM        │
+                         │      Qwen / Llama       │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │     Answer + Sources    │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │        FastAPI          │
+                         │                         │
+                         │  GET  /health           │
+                         │  POST /ingest           │
+                         │  POST /search            │
+                         │  POST /hybrid-search     │
+                         │  POST /chat              │
+                         └─────────────────────────┘
 ```
 
 ---
 
 # 🔄 RAG Pipeline
 
-The complete retrieval and generation workflow:
+The retrieval pipeline now supports both semantic and keyword-based retrieval.
 
 ```text
 User Question
       │
       ▼
-Question Embedding
+Query Processing
       │
-      ▼
-FAISS Semantic Search
-      │
-      ▼
-Candidate Retrieval
-      │
-      ▼
-Metadata Filtering
-      │
-      ▼
-Top-K Relevant Chunks
-      │
-      ▼
-Context Construction
-      │
-      ▼
-Prompt Construction
-      │
-      ▼
-Ollama LLM
-      │
-      ▼
-Generated Answer
-      │
-      ▼
-Answer + Sources
+      ├───────────────────────┐
+      │                       │
+      ▼                       ▼
+FAISS Semantic Search       BM25 Search
+      │                       │
+      │                       │
+      └───────────┬───────────┘
+                  │
+                  ▼
+           RRF Hybrid Fusion
+                  │
+                  ▼
+          Hybrid Top-K Results
+                  │
+                  ▼
+              Reranking
+                  │
+                  ▼
+         Context Construction
+                  │
+                  ▼
+          Prompt Construction
+                  │
+                  ▼
+             Ollama LLM
+                  │
+                  ▼
+          Generated Answer
+                  │
+                  ▼
+           Answer + Sources
 ```
 
 ---
@@ -186,6 +200,8 @@ Answer + Sources
 
 * LlamaIndex
 * FAISS CPU
+* BM25
+* bm25s
 * Ollama
 * Nomic Embed Text
 * Qwen / Llama
@@ -196,6 +212,7 @@ Answer + Sources
 * LlamaIndex `SentenceSplitter`
 * NumPy
 * Pickle
+* JSON
 
 ## Infrastructure
 
@@ -210,6 +227,7 @@ Answer + Sources
 
 ```text
 enterprise-rag/
+
 │
 ├── Dockerfile
 ├── README.md
@@ -249,6 +267,8 @@ enterprise-rag/
 │   │
 │   ├── retrieval/
 │   │   ├── search.py
+│   │   ├── bm25_search.py
+│   │   ├── hybrid_search.py
 │   │   └── test_search.py
 │   │
 │   ├── schemas/
@@ -262,8 +282,6 @@ enterprise-rag/
 │       └── index.py
 │
 ├── data/
-│   ├── faiss/
-│   │
 │   ├── pdf/
 │   │   ├── cloud/
 │   │   │   ├── DigitalOcean_policies.pdf
@@ -277,19 +295,17 @@ enterprise-rag/
 │   │
 │   └── processed/
 │
-├── docs/
-│
-├── logs/
-│
-├── tests/
+├── bm25_index/
+│   ├── doc_ids.txt
+│   └── doc_metadata.json
 │
 ├── vectorstore/
 │   ├── index.faiss
 │   └── metadata.pkl
 │
-├── pass
-├── pass.pub
-└── project_backup.zip
+├── docs/
+├── logs/
+└── tests/
 ```
 
 ---
@@ -450,15 +466,22 @@ The architecture separates vector storage from document metadata.
 
 ```text
 index.faiss
+
      ↓
+
 Vector representation
 
+
 metadata.pkl
+
      ↓
-Chunk text + metadata
+
+Chunk text + metadata + node_id
 ```
 
-FAISS vector IDs are used to map retrieved vectors back to the original document chunks.
+Each document chunk has a unique `node_id`.
+
+The `node_id` is used to identify the same chunk across different retrieval systems.
 
 ---
 
@@ -482,6 +505,7 @@ Example:
 
 ```text
 Question:
+
 What is the maximum casual leave allowed per month?
 ```
 
@@ -491,10 +515,11 @@ The search results contain:
 
 * Rank
 * Distance score
+* Node ID
 * Text
 * Metadata
 
-### FAISS Distance
+## FAISS Distance
 
 The current index uses:
 
@@ -503,8 +528,6 @@ IndexFlatL2
 ```
 
 Therefore the returned score represents **L2 distance**.
-
-Generally:
 
 ```text
 Lower distance  → More similar
@@ -580,26 +603,6 @@ Generate Answer
 Return Answer + Sources
 ```
 
-Example:
-
-```json
-{
-    "question": "What is the maximum casual leave allowed per month?",
-    "answer": "The maximum casual leave allowed per month is a total of 3 days.",
-    "sources": [
-        {
-            "rank": 1,
-            "score": 0.46,
-            "text": "...",
-            "metadata": {
-                "file_name": "Leave_Policy.pdf",
-                "page_label": "2"
-            }
-        }
-    ]
-}
-```
-
 The retrieved sources provide transparency and allow users to identify where the answer originated.
 
 ---
@@ -608,18 +611,15 @@ The retrieved sources provide transparency and allow users to identify where the
 
 The RAG system is exposed through FastAPI REST APIs.
 
-The API layer provides access to ingestion, retrieval, health checking, and question answering.
-
 Current API operations include:
 
 ```text
 GET  /health
 POST /ingest
 POST /search
-POST /ask
+POST /hybrid-search
+POST /chat
 ```
-
----
 
 ## Health Check
 
@@ -637,15 +637,13 @@ Example:
 }
 ```
 
----
-
 ## Document Ingestion
 
 ```text
 POST /ingest
 ```
 
-The ingestion endpoint processes the configured documents and creates/updates the vector index.
+The ingestion endpoint processes the configured documents and creates/updates the FAISS vector index.
 
 Pipeline:
 
@@ -663,8 +661,6 @@ FAISS
 Metadata
 ```
 
----
-
 ## Semantic Search
 
 ```text
@@ -673,54 +669,22 @@ POST /search
 
 The search endpoint performs semantic retrieval and supports metadata filtering.
 
-Example concept:
+## Hybrid Search
 
 ```text
-Question
-+
-Metadata Filters
-        ↓
-Semantic Search
-        ↓
-Filtered Results
+POST /hybrid-search
 ```
 
----
-
-## RAG Question Answering
+The hybrid search endpoint combines:
 
 ```text
-POST /ask
-```
-
-The endpoint executes the complete RAG pipeline.
-
-Example request:
-
-```json
-{
-    "question": "What is the maximum casual leave allowed per month?"
-}
-```
-
-Example response:
-
-```json
-{
-    "question": "What is the maximum casual leave allowed per month?",
-    "answer": "The maximum casual leave allowed per month is a total of 3 days.",
-    "sources": [
-        {
-            "rank": 1,
-            "score": 0.46,
-            "text": "...",
-            "metadata": {
-                "file_name": "Leave_Policy.pdf",
-                "page_label": "2"
-            }
-        }
-    ]
-}
+FAISS Semantic Search
+        +
+BM25 Keyword Search
+        ↓
+RRF Fusion
+        ↓
+Hybrid Results
 ```
 
 ---
@@ -728,12 +692,6 @@ Example response:
 # 🔐 Milestone 10 — Metadata Filtering
 
 Metadata filtering has been implemented as part of the retrieval layer.
-
-Implementation:
-
-```text
-app/retrieval/search.py
-```
 
 The retrieval system supports:
 
@@ -743,18 +701,12 @@ department
 page_label
 ```
 
-This allows semantic search to be combined with structured document filtering.
-
----
+This allows semantic search and keyword search to be combined with structured document filtering.
 
 ## Metadata Filtering Flow
 
 ```text
 User Question
-      ↓
-Question Embedding
-      ↓
-FAISS Search
       ↓
 Candidate Retrieval
       ↓
@@ -767,27 +719,23 @@ Page Filter
 Top-K Results
 ```
 
----
+All supplied filters are combined using AND logic.
 
-## Example
-
-Question:
+Example:
 
 ```text
-What is earned leave?
-```
+file_name = Leave_Policy.pdf
 
-Filters:
+AND
 
-```text
-file_name  = Leave_Policy.pdf
-department = hr
+department = HR
+
+AND
+
 page_label = 2
 ```
 
-The system first retrieves semantically similar candidates and then checks whether each candidate satisfies the requested metadata filters.
-
----
+A result must satisfy all supplied filters to be returned.
 
 ## Candidate Retrieval
 
@@ -811,229 +759,242 @@ the system retrieves:
 20 candidates
 ```
 
-before applying metadata filters.
+before applying the final ranking/filtering process.
 
-```text
-FAISS Search
-     ↓
-20 Candidates
-     ↓
-Metadata Filtering
-     ↓
-Valid Candidates
-     ↓
-Top 5 Results
-```
-
-This improves retrieval robustness when some of the highest-ranked semantic results do not satisfy the requested filters.
+This improves retrieval robustness when some high-ranked candidates do not satisfy the requested filters.
 
 ---
 
-## Metadata Filter Logic
+# 🔀 Milestone 11 — Hybrid Search
 
-### File Name
+Hybrid Search combines **semantic retrieval** and **keyword retrieval** to improve recall.
 
-Example:
-
-```text
-Leave_Policy.pdf
-```
-
-Only chunks from the requested file are returned.
-
-### Department
-
-The department is derived from the document path.
-
-Example:
+The project uses:
 
 ```text
-data/pdf/hr/Leave_Policy.pdf
+FAISS
++
+BM25
++
+Reciprocal Rank Fusion (RRF)
 ```
 
-The department is:
+## Why Hybrid Search?
+
+Semantic search is useful for understanding the meaning of a query.
+
+BM25 is useful for exact or lexical matches such as:
 
 ```text
-hr
+AWS
+Leave Policy
+Paternity leave
+Docker
+API
 ```
 
-### Page
-
-The search can be restricted to a specific page:
-
-```text
-page_label = 2
-```
-
-All supplied filters are combined using AND logic.
-
-Example:
-
-```text
-file_name = Leave_Policy.pdf
-AND
-department = hr
-AND
-page_label = 2
-```
-
-A result must satisfy all supplied filters to be returned.
+Combining both approaches provides a stronger retrieval strategy.
 
 ---
 
-# 📡 API Request Example
+## Hybrid Search Architecture
 
-## Basic Search
+```text
+                 User Question
+                       │
+             ┌─────────┴─────────┐
+             │                   │
+             ▼                   ▼
+       FAISS Search          BM25 Search
+       Semantic              Keyword
+             │                   │
+             │                   │
+             └─────────┬─────────┘
+                       │
+                       ▼
+                Node ID Matching
+                       │
+                       ▼
+                RRF Fusion
+                       │
+                       ▼
+                 Ranked Results
+                       │
+                       ▼
+                    Top-K
+```
+
+---
+
+## FAISS Retrieval
+
+FAISS performs semantic retrieval using the question embedding.
+
+```text
+Question
+   ↓
+Ollama Embedding
+   ↓
+FAISS
+   ↓
+Semantic Candidates
+```
+
+Each result contains a unique:
+
+```text
+node_id
+```
+
+---
+
+## BM25 Retrieval
+
+BM25 performs lexical keyword retrieval.
+
+Implementation:
+
+```text
+app/retrieval/bm25_search.py
+```
+
+The BM25 index is stored separately:
+
+```text
+bm25_index/
+
+├── doc_ids.txt
+├── doc_metadata.json
+└── BM25 index files
+```
+
+BM25 uses the same chunk `node_id` so that results can be matched with FAISS results.
+
+---
+
+## Node ID Strategy
+
+Every chunk has a unique `node_id`.
+
+Example:
+
+```text
+98b6fd39-50f7-420d-bae7-34bfbc2735c8
+bc2d05cd-5a4c-4e51-bd7e-dd50e647ba6c
+cafca7ee-4900-43e8-a5a0-009751e307d6
+075500c7-53df-44d2-b594-2ed8d70173ce
+6cccf679-3a96-4e83-9ff1-1ff849c58a1c
+```
+
+The same `node_id` can appear in both FAISS and BM25 results when both systems retrieve the same chunk.
+
+This allows the hybrid layer to identify that both retrieval systems refer to the same document chunk.
+
+---
+
+# 🔢 Reciprocal Rank Fusion
+
+The hybrid search uses **Reciprocal Rank Fusion (RRF)** to combine rankings.
+
+The scoring formula is:
+
+```text
+RRF Score = 1 / (k + rank)
+```
+
+The implementation uses:
+
+```python
+RRF_K = 60
+```
+
+If a chunk appears in both FAISS and BM25:
+
+```text
+FAISS rank contribution
+        +
+BM25 rank contribution
+        ↓
+Combined RRF score
+```
+
+The final results are sorted by the combined RRF score.
+
+---
+
+## Hybrid Search Example
+
+Question:
+
+```text
+What are the types of leave in Goa?
+```
+
+The system performs:
+
+```text
+                    Question
+                       │
+          ┌────────────┴────────────┐
+          ▼                         ▼
+       FAISS                      BM25
+          │                         │
+     node_id=A                node_id=A
+     node_id=B                node_id=C
+     node_id=C                node_id=D
+          │                         │
+          └────────────┬────────────┘
+                       ▼
+                    RRF
+                       │
+                       ▼
+               Combined Ranking
+                       │
+                       ▼
+                    Top 5
+```
+
+If FAISS and BM25 both return the same `node_id`, the result is treated as **one chunk** with a combined RRF score.
+
+---
+
+# 📡 Hybrid Search API
+
+Endpoint:
+
+```text
+POST /hybrid-search
+```
+
+Example request:
 
 ```json
 {
-    "question": "What is the maximum casual leave allowed per month?"
+    "question": "What are the types of leave in Goa?",
+    "top_k": 5
 }
 ```
 
-## Search With Metadata Filters
+The endpoint returns:
 
 ```json
 {
-    "question": "What is earned leave?",
-    "filters": {
-        "file_name": "Leave_Policy.pdf",
-        "department": "hr",
-        "page_label": "2"
-    }
-}
-```
-
-Example result structure:
-
-```json
-{
-    "question": "What is earned leave?",
-    "filters": {
-        "file_name": "Leave_Policy.pdf",
-        "department": "hr",
-        "page_label": "2"
-    },
+    "question": "What are the types of leave in Goa?",
+    "search_type": "hybrid",
     "results": [
         {
             "rank": 1,
-            "score": 0.54,
+            "node_id": "cafca7ee-4900-43e8-a5a0-009751e307d6",
+            "hybrid_score": 0.016393,
             "text": "...",
             "metadata": {
                 "file_name": "Leave_Policy.pdf",
-                "page_label": "2"
+                "page_label": "1"
             }
         }
     ]
 }
 ```
-
----
-
-# ▶️ Running the Project
-
-## 1. Create Virtual Environment
-
-```bash
-python3 -m venv .venv
-```
-
-## 2. Activate Virtual Environment
-
-```bash
-source .venv/bin/activate
-```
-
-## 3. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-## 4. Start Ollama
-
-Make sure Ollama is running locally.
-
-Default Ollama endpoint:
-
-```text
-http://localhost:11434
-```
-
-## 5. Start FastAPI
-
-```bash
-python -m uvicorn app.main:app --reload
-```
-
-The API will be available at:
-
-```text
-http://127.0.0.1:8000
-```
-
-Swagger documentation:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
----
-
-# 🧪 Testing
-
-The RAG pipeline can be tested using:
-
-```bash
-python -m app.rag.test_rag
-```
-
-Semantic retrieval can be tested using:
-
-```bash
-python -m app.retrieval.test_search
-```
-
-FastAPI APIs can be tested through Swagger:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
----
-
-# 🐳 Docker
-
-The project also contains Docker configuration:
-
-```text
-Dockerfile
-docker-compose.yml
-```
-
-Docker can be used to package and run the application in a consistent environment.
-
----
-
-# 📚 Supported Document Categories
-
-Current enterprise documents are organized by category:
-
-```text
-data/pdf/
-
-├── cloud/
-│   ├── DigitalOcean_policies.pdf
-│   └── aws_policy.pdf
-│
-├── hr/
-│   └── Leave_Policy.pdf
-│
-└── travel/
-    └── travel_policy.pdf
-```
-
-This directory organization also provides a foundation for department/category-based metadata filtering.
 
 ---
 
@@ -1047,6 +1008,9 @@ The main goal is to build a practical Enterprise RAG system demonstrating core A
 * Embedding generation
 * Vector indexing
 * FAISS semantic search
+* BM25 keyword search
+* Hybrid retrieval
+* Reciprocal Rank Fusion
 * Metadata management
 * Metadata filtering
 * Local LLM integration
@@ -1072,7 +1036,11 @@ Vector Search
         +
 FAISS
         +
-Semantic Retrieval
+BM25
+        +
+Hybrid Search
+        +
+RRF Fusion
         +
 Metadata Filtering
         +
@@ -1093,16 +1061,15 @@ Docker
 
 ```text
                     Enterprise RAG
-
                          │
                          ▼
-                  PDF Documents
+                   PDF Documents
                          │
                          ▼
-                 LlamaIndex Loader
+                  LlamaIndex Loader
                          │
                          ▼
-                     Chunking
+                      Chunking
                          │
                          ▼
                     Embeddings
@@ -1114,10 +1081,22 @@ Docker
                   Semantic Search
                          │
                          ▼
-                Metadata Filtering
+                  Metadata Filtering
                          │
                          ▼
-                    RAG Pipeline
+                    BM25 Search
+                         │
+                         ▼
+                  Hybrid Retrieval
+                         │
+                         ▼
+                    RRF Fusion
+                         │
+                         ▼
+                     Reranking
+                         │
+                         ▼
+                   RAG Pipeline
                          │
                          ▼
                     Ollama LLM
@@ -1129,26 +1108,32 @@ Docker
                    Answer + Sources
 ```
 
-### Milestone Completion
+---
+
+# 🏁 Milestone Completion
 
 ```text
-Milestone 1  — Project Setup          ✅
-Milestone 2  — PDF Loading            ✅
-Milestone 3  — Document Chunking      ✅
-Milestone 4  — Embeddings             ✅
-Milestone 5  — FAISS Indexing         ✅
-Milestone 6  — Semantic Search        ✅
-Milestone 7  — Ollama LLM             ✅
-Milestone 8  — RAG Pipeline           ✅
-Milestone 9  — FastAPI APIs           ✅
-Milestone 10 — Metadata Filtering     ✅
+Milestone 1  — Project Setup              ✅
+Milestone 2  — PDF Loading                ✅
+Milestone 3  — Document Chunking          ✅
+Milestone 4  — Embeddings                 ✅
+Milestone 5  — FAISS Indexing             ✅
+Milestone 6  — Semantic Search            ✅
+Milestone 7  — Ollama LLM                 ✅
+Milestone 8  — RAG Pipeline               ✅
+Milestone 9  — FastAPI APIs               ✅
+Milestone 10 — Metadata Filtering          ✅
+Milestone 11 — Hybrid Search + RRF         ✅
+Milestone 12 — Reranking                  🔜
 ```
+
+---
 
 # 🎉 Current Status
 
-**Enterprise RAG — Milestones 1–10 Complete**
+**Enterprise RAG — Milestones 1–11 Complete**
 
-The project currently provides a complete modular RAG pipeline with:
+The project currently provides:
 
 ```text
 PDF Ingestion
@@ -1161,6 +1146,12 @@ FAISS
       ↓
 Semantic Search
       ↓
+BM25 Keyword Search
+      ↓
+Hybrid Search
+      ↓
+RRF Fusion
+      ↓
 Metadata Filtering
       ↓
 Ollama LLM
@@ -1168,6 +1159,53 @@ Ollama LLM
 RAG
       ↓
 FastAPI
+      ↓
+Answer + Sources
 ```
 
-The foundation is now ready for the next stage of Enterprise RAG development, including advanced retrieval, evaluation, reranking, hybrid search, observability, security, and production deployment.
+The retrieval foundation is now ready for the next stage of Enterprise RAG development.
+
+## Next Stage
+
+The next milestone is **Reranking**.
+
+The planned retrieval architecture is:
+
+```text
+User Query
+    ↓
+FAISS + BM25
+    ↓
+Hybrid Retrieval
+    ↓
+RRF Fusion
+    ↓
+Candidate Top-K
+    ↓
+Reranker
+    ↓
+Best Relevant Chunks
+    ↓
+Context
+    ↓
+LLM
+    ↓
+Grounded Answer
+```
+
+Future improvements can include:
+
+* Reranking
+* Retrieval evaluation
+* RAG evaluation metrics
+* Observability
+* Query rewriting
+* Access control
+* Security
+* Caching
+* Production deployment
+* Cloud infrastructure
+* Monitoring
+
+```
+```

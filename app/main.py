@@ -1,11 +1,17 @@
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
+import time
 
 from app.loaders.pdf_loader import load_pdf_documents
 from app.chunking.chunker import chunk_documents
 from app.vectorstore.index import build_index
 from app.retrieval.search import semantic_search
 from app.rag.rag_pipeline import ask_question
+from app.retrieval.search import (
+    semantic_search,
+    hybrid_search,
+)
+from app.retrieval.bm25_search import bm25_search
 
 
 app = FastAPI(
@@ -154,4 +160,109 @@ def ingest_documents():
 
     return {
         "message": "Documents ingested and FAISS index created successfully"
+    }
+
+# ----------------------------------
+# Hybrid Search
+# ----------------------------------
+import time
+
+@app.post("/hybrid-search")
+def hybrid_search_api(
+    request: SearchRequest
+):
+
+    print("\n" + "=" * 60)
+    print("HYBRID SEARCH API STARTED")
+    print("=" * 60)
+
+    start_time = time.time()
+
+    # ----------------------------------
+    # 1. Start Hybrid Search
+    # ----------------------------------
+
+    print("Calling hybrid_search()...")
+
+    results = hybrid_search(
+        question=request.question,
+        top_k=request.top_k,
+        file_name=request.file_name,
+        department=request.department,
+        page_label=request.page_label,
+    )
+
+    # ----------------------------------
+    # 2. Calculate execution time
+    # ----------------------------------
+
+    execution_time = time.time() - start_time
+
+    print(
+        f"Hybrid search completed in "
+        f"{execution_time:.2f} seconds"
+    )
+
+    print(
+        f"Results returned: {len(results)}"
+    )
+
+    print("=" * 60)
+    print("HYBRID SEARCH API FINISHED")
+    print("=" * 60)
+
+    # ----------------------------------
+    # 3. Return response
+    # ----------------------------------
+
+    return {
+
+        "question": request.question,
+
+        "search_type": "hybrid",
+
+        "execution_time_seconds": round(
+            execution_time,
+            2
+        ),
+
+        "filters": {
+
+            "file_name": request.file_name,
+
+            "department": request.department,
+
+            "page_label": request.page_label,
+
+        },
+
+        "results": results,
+
+    }
+# ----------------------------------
+# BM25 Search
+# ----------------------------------
+
+@app.post("/bm25-search")
+def bm25_search_api(
+    request: SearchRequest
+):
+
+    results = bm25_search(
+        question=request.question,
+        top_k=request.top_k,
+        file_name=request.file_name,
+        department=request.department,
+        page_label=request.page_label,
+    )
+
+    return {
+        "question": request.question,
+        "search_type": "BM25",
+        "filters": {
+            "file_name": request.file_name,
+            "department": request.department,
+            "page_label": request.page_label,
+        },
+        "results": results,
     }
