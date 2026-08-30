@@ -1,10 +1,10 @@
+import time
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
-import time
-
 from app.loaders.pdf_loader import load_pdf_documents
 from app.chunking.chunker import chunk_documents
-from app.vectorstore.index import build_index
+from app.faiss_store.index import build_index
+from app.retrieval.reranking import rerank_results
 from app.retrieval.search import semantic_search
 from app.rag.rag_pipeline import ask_question
 from app.retrieval.search import (
@@ -40,6 +40,21 @@ class SearchRequest(BaseModel):
 
     page_label: str | None = None
 
+
+class HybridSearchRequest(BaseModel):
+    question: str
+
+    top_k: int = Field(
+        default=5,
+        ge=1,
+        le=20
+    )
+
+    file_name: str | None = None
+    department: str | None = None
+    page_label: str | None = None
+
+    enable_rerank: bool = True
 
 class ChatRequest(BaseModel):
 
@@ -165,8 +180,6 @@ def ingest_documents():
 # ----------------------------------
 # Hybrid Search
 # ----------------------------------
-import time
-
 @app.post("/hybrid-search")
 def hybrid_search_api(
     request: SearchRequest
@@ -179,10 +192,16 @@ def hybrid_search_api(
     start_time = time.time()
 
     # ----------------------------------
-    # 1. Start Hybrid Search
+    # 1. Hybrid Search
     # ----------------------------------
 
-    print("Calling hybrid_search()...")
+    print(
+        f"Question: {request.question}"
+    )
+
+    print(
+        f"Retrieving top {request.top_k} results..."
+    )
 
     results = hybrid_search(
         question=request.question,
@@ -193,7 +212,7 @@ def hybrid_search_api(
     )
 
     # ----------------------------------
-    # 2. Calculate execution time
+    # 2. Execution Time
     # ----------------------------------
 
     execution_time = time.time() - start_time
@@ -212,7 +231,7 @@ def hybrid_search_api(
     print("=" * 60)
 
     # ----------------------------------
-    # 3. Return response
+    # 3. Return Response
     # ----------------------------------
 
     return {
@@ -236,8 +255,9 @@ def hybrid_search_api(
 
         },
 
-        "results": results,
+        "result_count": len(results),
 
+        "results": results,
     }
 # ----------------------------------
 # BM25 Search
@@ -265,4 +285,152 @@ def bm25_search_api(
             "page_label": request.page_label,
         },
         "results": results,
+    }
+
+
+@app.post("/hybrid-rerank")
+def hybrid_rerank_api(
+    request: HybridSearchRequest
+):
+
+    print("\n" + "=" * 60)
+    print("HYBRID SEARCH + RERANK API STARTED")
+    print("=" * 60)
+
+    start_time = time.time()
+
+    # ----------------------------------
+    # 1. Retrieve candidates
+    # ----------------------------------
+
+    candidate_k = (
+        request.top_k * 3
+        if request.enable_rerank
+        else request.top_k
+    )
+
+    print(
+        f"Calling hybrid_search() "
+        f"with top {candidate_k} candidates..."
+    )
+
+    raw_results = hybrid_search(
+        question=request.question,
+        top_k=candidate_k,
+        file_name=request.file_name,
+        department=request.department,
+        page_label=request.page_label,
+    )
+
+    retrieval_time = time.time() - start_time
+
+    print(
+        f"Hybrid search retrieved "
+        f"{len(raw_results)} candidates "
+        f"in {retrieval_time:.2f}s"
+    )
+
+    # ----------------------------------
+    # 2. Reranking
+    # ----------------------------------
+
+    rerank_start = time.time()
+
+    if request.enable_rerank and raw_results:
+
+        print(
+            "Running CrossEncoder reranker..."
+        )
+
+        final_results = rerank_results(
+            query=request.question,
+            documents=raw_results,
+            top_k=request.top_k,
+        )
+
+        # Reassign final ranking
+        for rank, result in enumerate(
+            final_results,
+            start=1
+        ):
+            result["rank"] = rank
+
+    else:
+
+        final_results = raw_results[
+            :request.top_k
+        ]
+
+    rerank_time = time.time() - rerank_start
+
+    # ----------------------------------
+    # 3. Total execution time
+    # ----------------------------------
+
+    total_execution_time = (
+        time.time() - start_time
+    )
+
+    print(
+        f"Reranking completed in "
+        f"{rerank_time:.2f}s"
+    )
+
+    print(
+        f"Final results returned: "
+        f"{len(final_results)}"
+    )
+
+    print("=" * 60)
+    print("HYBRID SEARCH + RERANK API FINISHED")
+    print("=" * 60)
+
+    # ----------------------------------
+    # 4. Response
+    # ----------------------------------
+
+    return {
+
+        "question": request.question,
+
+        "search_type": (
+            "hybrid_with_rerank"
+            if request.enable_rerank
+            else "hybrid"
+        ),
+
+        "candidate_count": len(raw_results),
+
+        "result_count": len(final_results),
+
+        "execution_time_seconds": round(
+            total_execution_time,
+            2
+        ),
+
+        "timing_breakdown": {
+
+            "retrieval_seconds": round(
+                retrieval_time,
+                2
+            ),
+
+            "rerank_seconds": round(
+                rerank_time,
+                2
+            ),
+
+        },
+
+        "filters": {
+
+            "file_name": request.file_name,
+
+            "department": request.department,
+
+            "page_label": request.page_label,
+
+        },
+
+        "results": final_results,
     }
