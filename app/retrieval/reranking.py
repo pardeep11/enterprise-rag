@@ -13,17 +13,26 @@ def rerank_results(query: str, documents: list[dict], top_k: int) -> list[dict]:
     if not documents:
         return []
 
+    print("reranking file==================")
+    print('document length',len(documents))
+    print('before document :--',documents[0])
+    print("before query:::",query)
+
     # 1. Prepare (query, text) pairs for the model
     # Note: If your candidate payload uses a key other than 'text' (e.g. 'content'), update it here.
     pairs = [[query, doc.get("text", "")] for doc in documents]
+    print('pairs :',pairs )
 
     # 2. Get relevance scores (logits/scores from MS-MARCO)
     scores = reranker_model.predict(pairs)
+    print('scores :',scores)
 
     # 3. Attach scores back to the original document objects
     for doc, score in zip(documents, scores):
         doc["rerank_score"] = float(score)
 
+    print('after document :--',documents[0])
     # 4. Sort documents descending by score and return top_k
     sorted_docs = sorted(documents, key=lambda x: x["rerank_score"], reverse=True)
+    print(' sorted_docs :--', sorted_docs)
     return sorted_docs[:top_k]

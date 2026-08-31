@@ -146,6 +146,16 @@ def semantic_search(
         candidate_k
     )
 
+    print('----------semantic search function data-------')
+    print('candidate_k ',candidate_k)
+    print('query_vector ',query_vector)
+    print('distances ',distances)
+    print('indices ',indices)
+    print('faiss_index.ntotal ',faiss_index.ntotal)
+    print('top_k ',top_k)
+    print('metadata ',metadata)
+
+
     # ----------------------------------
     # 5. Metadata filtering
     # ----------------------------------
@@ -226,6 +236,7 @@ def hybrid_search(
         page_label=page_label,
     )
 
+    print('semantic_results',semantic_results)
     # ----------------------------------
     # 2. BM25 Search
     # ----------------------------------
@@ -241,7 +252,7 @@ def hybrid_search(
     # ----------------------------------
     # 3. Reciprocal Rank Fusion
     # ----------------------------------
-
+    print('keyword_results:',keyword_results)
     fused_scores = {}
 
     result_map = {}
@@ -269,7 +280,8 @@ def hybrid_search(
     # ----------------------------------
     # BM25 ranking
     # ----------------------------------
-
+    print('result_map',result_map)
+    print('fused_scores::',fused_scores)
     for rank, result in enumerate(
         keyword_results,
         start=1
@@ -298,6 +310,7 @@ def hybrid_search(
         reverse=True
     )
 
+    print('ranked_ids',ranked_ids)
     # ----------------------------------
     # Final results
     # ----------------------------------

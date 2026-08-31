@@ -28,6 +28,7 @@ def load_bm25_store():
         load_corpus=False
     )
 
+    print('retriever',retriever)
     # ----------------------------------
     # Load document IDs
     # ----------------------------------
@@ -38,6 +39,7 @@ def load_bm25_store():
         encoding="utf-8"
     ).splitlines()
 
+    print('doc_ids',doc_ids)
     # ----------------------------------
     # Load metadata
     # ----------------------------------
@@ -49,7 +51,7 @@ def load_bm25_store():
     ) as file:
 
         metadata_map = json.load(file)
-
+    print('metadata_map',metadata_map)
     return (
         retriever,
         doc_ids,
@@ -87,7 +89,8 @@ def bm25_search(
         [question],
         stopwords="en"
     )
-
+    print('Bm25 file')
+    print('query_tokensss',query_tokens)
     # ----------------------------------
     # Retrieve candidates
     # ----------------------------------
@@ -105,7 +108,8 @@ def bm25_search(
     # ----------------------------------
     # Prepare results
     # ----------------------------------
-
+    print('results',results)
+    print('scores',scores)
     final_results = []
 
     for row_idx, score in zip(

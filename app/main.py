@@ -296,7 +296,7 @@ def hybrid_rerank_api(
     print("\n" + "=" * 60)
     print("HYBRID SEARCH + RERANK API STARTED")
     print("=" * 60)
-
+    print('request:', request)
     start_time = time.time()
 
     # ----------------------------------
@@ -329,6 +329,8 @@ def hybrid_rerank_api(
         f"{len(raw_results)} candidates "
         f"in {retrieval_time:.2f}s"
     )
+
+    print('raw_results',raw_results[0])
 
     # ----------------------------------
     # 2. Reranking

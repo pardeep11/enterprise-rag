@@ -111,3 +111,9 @@ ollama_models/
 *.tmp
 *.temp
 *.bak
+
+output.txt
+
+__pycache__/
+*.py[cod]
+.venv/
