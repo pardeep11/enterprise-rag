@@ -1,0 +1,49 @@
+{
+  "questions": [
+    {
+      "question_id": "Q001",
+      "question": "How many days of Casual Leave can an employee take in a month?",
+      "ground_truth_answer": "Casual Leave can be taken for a maximum of 3 days in a month.",
+      "ground_truth_chunk_ids": [
+        "c8321f00-ac12-4d39-9132-234a006e047f"
+      ],
+      "source_metadata": {
+        "file_name": "Leave_Policy.pdf",
+        "file_path": "data/pdf/hr/Leave_Policy.pdf",
+        "page_label": "1",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q002",
+      "question": "How many days of Casual Leave can an employee take, and can Casual Leave be combined with Earned Leave or Sick Leave?",
+      "ground_truth_answer": "Casual Leave can be taken for a minimum of 0.5 days to a maximum of 3 days. It cannot be appended with Earned/Privileged Leave or Sick Leave.",
+      "ground_truth_chunk_ids": [
+        "3249d61a-7849-410a-b1a7-9004cd2d0556"
+      ],
+      "source_metadata": {
+        "page_label": "2",
+        "file_name": "Leave_Policy.pdf",
+        "file_path": "data/pdf/hr/Leave_Policy.pdf",
+        "file_type": "application/pdf",
+        "file_size": 40480,
+        "creation_date": "2026-08-15",
+        "last_modified_date": "2026-08-15"
+      }
+    },
+    {
+      "question_id": "Q003",
+      "question": "Can Sick Leave (SL) be appended with Earned Leave (EL), and when is a medical certificate required?",
+      "ground_truth_answer": "Yes, Sick Leave can be appended with Earned Leave. A medical certificate is usually required for absences exceeding 2 or 3 days.",
+      "ground_truth_chunk_ids": [
+        "6691dacf-d476-4fcd-b1a6-e4b4e497eca8"
+      ],
+      "source_metadata": {
+        "file_name": "Leave_Policy.pdf",
+        "file_path": "data/pdf/hr/Leave_Policy.pdf",
+        "page_label": "2",
+        "file_type": "application/pdf"
+      }
+    }
+  ]
+}

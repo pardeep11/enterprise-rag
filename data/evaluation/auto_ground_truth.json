@@ -1,0 +1,284 @@
+{
+  "questions": [
+    {
+      "question_id": "Q001",
+      "question": "What is the commencement date for the leave period in this policy?",
+      "ground_truth_answer": "1st January to 31st December every year",
+      "ground_truth_chunk_ids": [
+        "635fd1ff-b0c4-4261-abf4-070405fb3683"
+      ],
+      "source_metadata": {
+        "file_name": "Leave_Policy.pdf",
+        "file_path": "data/pdf/hr/Leave_Policy.pdf",
+        "page_label": "1",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q002",
+      "question": "What is the maximum number of Casual Leave (CL) days one can obtain in a month?",
+      "ground_truth_answer": "3",
+      "ground_truth_chunk_ids": [
+        "c3d2ea2b-1caf-4f6d-b9b5-bcd729db6eff"
+      ],
+      "source_metadata": {
+        "file_name": "Leave_Policy.pdf",
+        "file_path": "data/pdf/hr/Leave_Policy.pdf",
+        "page_label": "1",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q003",
+      "question": "How many days of Casual Leave can a new joiner who starts in July get for the year, on a pro rata basis?",
+      "ground_truth_answer": "0.5 to 1.5",
+      "ground_truth_chunk_ids": [
+        "398968e9-f70a-430c-a145-825d42b2ea34"
+      ],
+      "source_metadata": {
+        "file_name": "Leave_Policy.pdf",
+        "file_path": "data/pdf/hr/Leave_Policy.pdf",
+        "page_label": "2",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q004",
+      "question": "How many working days are required to earn one day of Privilege Leave (PL) or Earned Leave (EL)?",
+      "ground_truth_answer": "20",
+      "ground_truth_chunk_ids": [
+        "b8d9d6c5-c88e-4066-976d-6239fa4e0f99"
+      ],
+      "source_metadata": {
+        "file_name": "Leave_Policy.pdf",
+        "file_path": "data/pdf/hr/Leave_Policy.pdf",
+        "page_label": "2",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q005",
+      "question": "What is the maximum number of times an employee can take leave within a period of 12 months according to the document chunk?",
+      "ground_truth_answer": "3",
+      "ground_truth_chunk_ids": [
+        "2ed1ed36-ba90-4c25-9bac-bb60e282671e"
+      ],
+      "source_metadata": {
+        "file_name": "Leave_Policy.pdf",
+        "file_path": "data/pdf/hr/Leave_Policy.pdf",
+        "page_label": "2",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q006",
+      "question": "What is the maximum number of days that can be carried forward for unused Earned Leave into the next calendar year?",
+      "ground_truth_answer": "45 days",
+      "ground_truth_chunk_ids": [
+        "368ff0f8-130b-45d4-ace9-cbd8acf48936"
+      ],
+      "source_metadata": {
+        "file_name": "Leave_Policy.pdf",
+        "file_path": "data/pdf/hr/Leave_Policy.pdf",
+        "page_label": "3",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q007",
+      "question": "How many weeks of paid maternity leave are female employees entitled to if they have already given birth to two or more children?",
+      "ground_truth_answer": "12 weeks",
+      "ground_truth_chunk_ids": [
+        "82eef675-e156-4548-b0c9-64e0f8227c5b"
+      ],
+      "source_metadata": {
+        "file_name": "Leave_Policy.pdf",
+        "file_path": "data/pdf/hr/Leave_Policy.pdf",
+        "page_label": "3",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q008",
+      "question": "How long can a pregnant employee avoid arduous work before delivery according to the document?",
+      "ground_truth_answer": "10 weeks",
+      "ground_truth_chunk_ids": [
+        "3337a0f7-a0ac-4952-b9b1-12e0b3ff1e50"
+      ],
+      "source_metadata": {
+        "file_name": "Leave_Policy.pdf",
+        "file_path": "data/pdf/hr/Leave_Policy.pdf",
+        "page_label": "3",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q009",
+      "question": "What type of leave is given to a male employee when a child is born, and who decides the duration?",
+      "ground_truth_answer": "Paternity leave is unpaid leave given to a male employee when a child is born, and the duration of the leave is at the sole discretion of the management.",
+      "ground_truth_chunk_ids": [
+        "b757e58a-be90-4895-a459-7937e0d2219b"
+      ],
+      "source_metadata": {
+        "file_name": "Leave_Policy.pdf",
+        "file_path": "data/pdf/hr/Leave_Policy.pdf",
+        "page_label": "4",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q010",
+      "question": "What is the title of this whitepaper?",
+      "ground_truth_answer": "An Overview of the AWS Cloud Adoption Framework",
+      "ground_truth_chunk_ids": [
+        "d0631531-7b7d-457b-8830-9c09de29b842"
+      ],
+      "source_metadata": {
+        "file_name": "aws_policy.pdf",
+        "file_path": "data/pdf/cloud/aws_policy.pdf",
+        "page_label": "i",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q011",
+      "question": "What is the copyright year for this AWS Cloud Adoption Framework Whitepaper?",
+      "ground_truth_answer": "2026",
+      "ground_truth_chunk_ids": [
+        "509cdccb-4dd9-4b27-b084-ab5ede5397f1"
+      ],
+      "source_metadata": {
+        "file_name": "aws_policy.pdf",
+        "file_path": "data/pdf/cloud/aws_policy.pdf",
+        "page_label": "ii",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q012",
+      "question": "How many sections does the table of contents have in the AWS Cloud Adoption Framework Whitepaper?",
+      "ground_truth_answer": "16",
+      "ground_truth_chunk_ids": [
+        "e01fa283-0c36-4b6c-9071-2031fd7ab9c7"
+      ],
+      "source_metadata": {
+        "file_name": "aws_policy.pdf",
+        "file_path": "data/pdf/cloud/aws_policy.pdf",
+        "page_label": "iii",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q013",
+      "question": "In what formats is the AWS Cloud Adoption Framework whitepaper also available besides its original form?",
+      "ground_truth_answer": "Audible, Kindle, and as an eBook.",
+      "ground_truth_chunk_ids": [
+        "67822d55-aff5-40be-9076-44375c53d3d9"
+      ],
+      "source_metadata": {
+        "file_name": "aws_policy.pdf",
+        "file_path": "data/pdf/cloud/aws_policy.pdf",
+        "page_label": "iv",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q014",
+      "question": "What is the purpose of the AWS Cloud Adoption Framework (AWS CAF)?",
+      "ground_truth_answer": "The AWS Cloud Adoption Framework (AWS CAF) leverages AWS experience and best practices to help you digitally transform and accelerate your business outcomes through innovative use of AWS. Use the AWS CAF to identify and prioritize transformation opportunities, evaluate and improve your cloud readiness, and iteratively evolve your transformation roadmap.",
+      "ground_truth_chunk_ids": [
+        "358116f6-8d82-4cb4-9244-fa41af29332b"
+      ],
+      "source_metadata": {
+        "file_name": "aws_policy.pdf",
+        "file_path": "data/pdf/cloud/aws_policy.pdf",
+        "page_label": "1",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q015",
+      "question": "In how many languages is the whitepaper available as a localized PDF?",
+      "ground_truth_answer": "12",
+      "ground_truth_chunk_ids": [
+        "ee90c3d8-0298-42df-bbd8-37751879aa70"
+      ],
+      "source_metadata": {
+        "file_name": "aws_policy.pdf",
+        "file_path": "data/pdf/cloud/aws_policy.pdf",
+        "page_label": "1",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q016",
+      "question": "What does the AWS Well-Architected Framework help you understand when building systems in the cloud?",
+      "ground_truth_answer": "the pros and cons of the decisions you make",
+      "ground_truth_chunk_ids": [
+        "7a0f6fe7-8127-49e0-9c63-63d6a9094d06"
+      ],
+      "source_metadata": {
+        "file_name": "aws_policy.pdf",
+        "file_path": "data/pdf/cloud/aws_policy.pdf",
+        "page_label": "2",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q017",
+      "question": "According to the document, what percentage of S&P 500 companies are projected to be replaced in the next decade?",
+      "ground_truth_answer": "50%",
+      "ground_truth_chunk_ids": [
+        "8b4be03b-1252-4028-818d-fb1b38f2329c"
+      ],
+      "source_metadata": {
+        "file_name": "aws_policy.pdf",
+        "file_path": "data/pdf/cloud/aws_policy.pdf",
+        "page_label": "3",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q018",
+      "question": "What does the AWS CAF identify and provide prescriptive guidance for?",
+      "ground_truth_answer": "a set of foundational organizational capabilities",
+      "ground_truth_chunk_ids": [
+        "4fb08968-ae09-4b1d-ab25-4e299409bd98"
+      ],
+      "source_metadata": {
+        "file_name": "aws_policy.pdf",
+        "file_path": "data/pdf/cloud/aws_policy.pdf",
+        "page_label": "3",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q019",
+      "question": "What percentage reduction in cost per user can be achieved by migrating from on-premises to AWS according to Cloud Value Benchmarking?",
+      "ground_truth_answer": "27%",
+      "ground_truth_chunk_ids": [
+        "e6bcdc35-ad43-4458-879a-11e50adb2bc3"
+      ],
+      "source_metadata": {
+        "file_name": "aws_policy.pdf",
+        "file_path": "data/pdf/cloud/aws_policy.pdf",
+        "page_label": "4",
+        "file_type": "application/pdf"
+      }
+    },
+    {
+      "question_id": "Q020",
+      "question": "What does process transformation aim to achieve in business operations?",
+      "ground_truth_answer": "digitizing, automating, and optimizing business operations",
+      "ground_truth_chunk_ids": [
+        "59d2a74e-6b9c-43d2-88fb-73d04a0e603b"
+      ],
+      "source_metadata": {
+        "file_name": "aws_policy.pdf",
+        "file_path": "data/pdf/cloud/aws_policy.pdf",
+        "page_label": "4",
+        "file_type": "application/pdf"
+      }
+    }
+  ]
+}
